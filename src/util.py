@@ -1,5 +1,8 @@
 import networkx as nx
 import matplotlib.pyplot as plt
+import os
+import pickle
+import RNA
 
 
 def dotbracket_to_graph(dotbracket):
@@ -13,7 +16,7 @@ def dotbracket_to_graph(dotbracket):
             neighbor = bases.pop()
             G.add_edge(i, neighbor, edge_type='base_pair')
         elif c == '.':
-            pass
+            G.add_node(i)
         else:
             print("Input is not in dot-bracket notation!")
             return None
@@ -28,3 +31,25 @@ def draw_rna_graph(rna_graph):
     colors = ['black' if edge[2]['edge_type'] == 'adjacent' else 'blue' for edge in edges]
     nx.draw(rna_graph, edge_color=colors)
     plt.show()
+
+
+def get_family_to_sequences():
+    family_sequences_path = '../data/family_rna_sequences/'
+    rna_family_files = sorted(os.listdir(family_sequences_path))
+    family_to_sequences = {}
+
+    for file in rna_family_files:
+        if 'RF' in file:
+            family = file[:7]
+            family_sequences = pickle.load(open(family_sequences_path + file, 'rb'))
+            family_to_sequences[family] = family_sequences
+
+    return family_to_sequences
+
+
+def get_sequences_with_folding(family='RF00002'):
+    file = '../data/family_rna_sequences/{}.pkl'.format(family)
+    sequences = pickle.load(open(file, 'rb'))
+    sequences_with_folding = [(sequence, RNA.fold(sequence)[0]) for sequence in sequences]
+
+    return sequences_with_folding
