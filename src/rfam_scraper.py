@@ -14,7 +14,6 @@ class RfamScraper:
         self.ftp.login()
         self.ftp.cwd(self.directory)
 
-
     def get_family_rna_sequences(self, family_id):
         file_name = '{}.fa.gz'.format(family_id)
         # Download gz file
@@ -33,7 +32,6 @@ class RfamScraper:
 
         return sequences
 
-
     def store_families_rna_sequences(self, family_ids):
         for family_id in family_ids:
             sequences = self.get_family_rna_sequences(family_id)
@@ -44,8 +42,6 @@ class RfamScraper:
             #             f.write('\n')
             pickle.dump(sequences, open('../data/family_rna_sequences/{}.pkl'.format(family_id),
                                         'wb'))
-
-
 
     def extract_sequences(self, fa_file_path):
         sequences = []
@@ -62,7 +58,7 @@ class RfamScraper:
 
         return sequences
 
-
+    @staticmethod
     def is_line_sequence(self, line):
         allowed = ['C', 'A', 'G', 'T']
         for c in line:
