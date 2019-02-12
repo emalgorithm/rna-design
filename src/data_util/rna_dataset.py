@@ -1,18 +1,19 @@
 from torch.utils.data import Dataset
 import pickle
+import os, os.path
 
 
 class RNADataset(Dataset):
-    def __init__(self, file_path, x_transform=None, y_transform=None):
+    def __init__(self, dir_path, x_transform=None, y_transform=None):
         self.x_transform = x_transform
         self.y_transform = y_transform
-        self.file_path = file_path
+        self.dir_path = dir_path
 
     def __len__(self):
-        return 10
+        return len(os.listdir(self.dir_path))
 
     def __getitem__(self, idx):
-        sample = pickle.load(open(self.file_path + "{}.rna".format(idx + 1), 'rb'))
+        sample = pickle.load(open(self.dir_path + "{}.rna".format(idx + 1), 'rb'))
         sample_x = sample['sequence']
         sample_y = sample['dot_bracket']
 
