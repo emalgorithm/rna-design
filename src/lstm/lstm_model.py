@@ -15,7 +15,7 @@ class LSTMModel(nn.Module):
 
         # The LSTM takes word embeddings as inputs, and outputs hidden states
         # with dimensionality hidden_dim.
-        self.lstm = nn.LSTM(embedding_dim, hidden_dim)
+        self.lstm = nn.LSTM(embedding_dim, hidden_dim, batch_first=True)
 
         # The linear layer that maps from hidden state space to tag space
         self.hidden2base = nn.Linear(hidden_dim, output_size)
@@ -37,15 +37,13 @@ class LSTMModel(nn.Module):
         # embeds has shape (batch_size, seq_length, embedding_dim)
         embeds = self.word_embeddings(sentence)
 
-        # lstm_in has shape (seq_length, batch_size, embedding_dim)
-        lstm_in = embeds.permute(1, 0, 2)
-
-        # lstm_in has shape (seq_length, batch_size, hidden_dim)
-        lstm_out, self.hidden = self.lstm(lstm_in, self.hidden)
+        # lstm_out has shape (batch_size, seq_length, hidden_dim)
+        lstm_out, self.hidden = self.lstm(embeds, self.hidden)
 
         # Flatten lstm_out to shape (seq_length * batch_size, hidden_dim) and apply linear layer to
         # all the output representation of the basis
-        base_space = self.hidden2base(lstm_out.view(-1, lstm_out.size(2)))
+        # base_space has shape (seq_length * batch_size, output_size)
+        base_space = self.hidden2base(lstm_out.contiguous().view(-1, lstm_out.size(2)))
 
         # base_scores has shape (seq_length * batch_size, output_size)
         base_scores = F.log_softmax(base_space, dim=1)
