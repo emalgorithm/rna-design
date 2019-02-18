@@ -79,7 +79,7 @@ def run(model, n_epochs, train_loader, test_loader):
         test_h_losses.append(test_h_loss)
 
         plot_loss(train_losses, test_losses, file_name='loss2.jpg')
-        plot_loss(train_h_losses, test_h_losses, file_name='h_loss2.jpg')
+        plot_loss(train_h_losses, test_h_losses, file_name='h_loss2.jpg', y_label='hamming_loss')
 
 
 def evaluate(model, test_loader):
