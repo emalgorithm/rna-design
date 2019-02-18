@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 import os
 import pickle
 import RNA
+import numpy as np
 
 
 def dotbracket_to_graph(dotbracket):
@@ -53,3 +54,11 @@ def get_sequences_with_folding(family='RF00002'):
     sequences_with_folding = [(sequence, RNA.fold(sequence)[0]) for sequence in sequences]
 
     return sequences_with_folding
+
+
+def get_all_sequences():
+    family_to_sequences = get_family_to_sequences()
+    all_sequences = np.array(list(family_to_sequences.values()))
+    all_sequences = [item for sublist in all_sequences for item in sublist]
+
+    return all_sequences
