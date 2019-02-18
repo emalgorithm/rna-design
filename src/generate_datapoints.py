@@ -47,11 +47,16 @@ import numpy as np
 sequences_with_folding = []
 
 family_to_sequences = get_family_to_sequences()
+i = 0
 
 for family, sequences in list(family_to_sequences.items()):
     for sequence in sequences:
         dot_bracket = RNA.fold(sequence)[0]
-        print("Compute structure for sequence {}".format(len(sequences_with_folding)))
+
+        if i % 1000 == 0:
+            print("Compute structure for sequence {}".format(i))
+        i += 1
+
         datapoint = {
             'sequence': sequence,
             'dot_bracket': dot_bracket,
