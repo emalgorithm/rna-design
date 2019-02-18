@@ -7,11 +7,7 @@ from sklearn.metrics import hamming_loss
 from data_util.rna_dataset import RNADataset
 from torchvision import transforms
 from visualization_util import plot_loss
-
-# 'U' and 'T' in this sequences refer both to the base 'U'. 'T' is just used for convenience
-word_to_ix = {"<PAD>": 0, "A": 1, "G": 2, "C": 3, "U": 4, 'T': 4}
-tag_to_ix = {"<PAD>": 0, ".": 1, "(": 2, ")": 3}
-ix_to_tag = {0: "<PAD>", 1: ".", 2: "(", 3: ")"}
+from data_util.data_constants import word_to_ix, tag_to_ix
 
 # Model Definition
 EMBEDDING_DIM = 6
