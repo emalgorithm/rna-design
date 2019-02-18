@@ -1,6 +1,11 @@
 import numpy as np
 import torch
 
+# 'U' and 'T' in this sequences refer both to the base 'U'. 'T' is just used for convenience
+word_to_ix = {"<PAD>": 0, "A": 1, "G": 2, "C": 3, "U": 4, 'T': 4}
+tag_to_ix = {"<PAD>": 0, ".": 1, "(": 2, ")": 3}
+ix_to_tag = {0: "<PAD>", 1: ".", 2: "(", 3: ")"}
+
 
 def prepare_sequence(seq, to_ix):
     idxs = [to_ix[w] for w in seq]
@@ -22,3 +27,12 @@ def prepare_sequences(seqs, to_ix):
         padded_X[i, 0:x_len] = sequence[:x_len]
 
     return torch.tensor(padded_X, dtype=torch.long)
+
+
+def my_collate(batch):
+    sequences = prepare_sequences([item[0] for item in batch], word_to_ix)
+    targets = prepare_sequences([item[1] for item in batch], tag_to_ix)
+
+    return [sequences, targets]
+
+
