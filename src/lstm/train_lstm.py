@@ -19,7 +19,7 @@ batch_size = 32
 
 model = LSTMModel(EMBEDDING_DIM, HIDDEN_DIM, len(word_to_ix), len(tag_to_ix), batch_size=batch_size)
 loss_function = nn.NLLLoss()
-optimizer = optim.SGD(model.parameters(), lr=0.3)
+optimizer = optim.SGD(model.parameters(), lr=0.01)
 
 # Data Loading
 x_transform = transforms.Lambda(lambda sequences: prepare_sequence(sequences, word_to_ix))
@@ -29,10 +29,10 @@ train_set = RNADataset('../../data/temp_train/', x_transform=x_transform,
                        y_transform=y_transform)
 test_set = RNADataset('../../data/temp_test/', x_transform=x_transform, y_transform=y_transform)
 train_loader = torch.utils.data.DataLoader(train_set, batch_size=batch_size, shuffle=True)
-test_loader = torch.utils.data.DataLoader(test_set, batch_size=1, shuffle=False)
+test_loader = torch.utils.data.DataLoader(test_set, batch_size=batch_size, shuffle=False)
 
-# Training
-for epoch in range(100):
+
+def train_epoch(model, train_loader):
     avg_loss = 0
     h_loss = 0
     for batch_idx, (sequences, dot_brackets) in enumerate(train_loader):
@@ -40,41 +40,57 @@ for epoch in range(100):
         if sequences.shape[0] < batch_size:
             continue
 
-        # Step 1. Remember that Pytorch accumulates gradients.
-        # We need to clear them out before each instance
         model.zero_grad()
 
-        # Step 2. Run our forward pass.
         base_scores = model(sequences)
 
-        # Step 3. Compute the loss, gradients, and update the parameters by
-        #  calling optimizer.step()
         loss = loss_function(base_scores, dot_brackets.view(-1))
         loss.backward()
         optimizer.step()
+
         avg_loss += loss
-
         pred = base_scores.max(1)[1]
         h_loss += hamming_loss(dot_brackets.view(-1), pred)
 
-    print("Epoch {}: loss is {}".format(epoch + 1, avg_loss / len(train_loader)))
-    print("Average hamming loss: {}".format(h_loss / len(train_loader)))
+    avg_loss /= len(train_loader)
+    h_loss /= len(train_loader)
 
-with torch.no_grad():
-    h_loss = 0
-    for batch_idx, (sequences, dot_brackets) in enumerate(test_loader):
-        # Skip last batch if it does not have full size
-        if sequences.shape[0] < batch_size:
-            continue
+    print("training loss is {}".format(avg_loss))
+    print("training hamming loss: {}".format(h_loss))
 
-        base_scores = model(sequences)
-        pred = base_scores.max(1)[1]
-        h_loss += hamming_loss(dot_brackets.view(-1), pred)
+    return avg_loss, h_loss
 
-        pred = [ix_to_tag[p.item()] for p in pred]
-        dot_brackets = [ix_to_tag[x.item()] for x in dot_brackets.view(-1)]
-        print("Real: {}".format(''.join(dot_brackets)))
-        print("Pred: {}".format(''.join(pred)))
-        print()
 
-    print("Average Test hamming loss: {}".format(h_loss / len(train_loader)))
+def run(model, n_epochs, train_loader, test_loader):
+    for epoch in range(n_epochs):
+        print("Epoch {}: ".format(epoch + 1))
+
+        loss, h_loss = train_epoch(model, train_loader)
+        test_loss, test_h_loss = evaluate(model, test_loader)
+
+
+def evaluate(model, test_loader):
+    with torch.no_grad():
+        loss = 0
+        h_loss = 0
+
+        for batch_idx, (sequences, dot_brackets) in enumerate(test_loader):
+            # Skip last batch if it does not have full size
+            if sequences.shape[0] < batch_size:
+                continue
+
+            base_scores = model(sequences)
+            loss += loss_function(base_scores, dot_brackets.view(-1))
+            pred = base_scores.max(1)[1]
+            h_loss += hamming_loss(dot_brackets.view(-1), pred)
+
+        loss /= len(test_loader)
+        h_loss /= len(test_loader)
+
+        print("test loss: {}".format(loss))
+        print("test hamming loss: {}".format(h_loss))
+
+        return loss, h_loss
+
+
+run(model, 10, train_loader, test_loader)
