@@ -1,11 +1,11 @@
 import numpy as np
 import torch
-from data_util.data_constants import word_to_ix, tag_to_ix
+from data_util.data_constants import word_to_ix, tag_to_ix, device
 
 
 def prepare_sequence(seq, to_ix):
     idxs = [to_ix[w] for w in seq]
-    return torch.tensor(idxs, dtype=torch.long)
+    return torch.tensor(idxs, dtype=torch.long).to(device)
 
 
 def prepare_sequences(seqs, to_ix):
@@ -23,7 +23,8 @@ def prepare_sequences(seqs, to_ix):
         sequence = X[i]
         padded_X[i, 0:x_len] = sequence[:x_len]
 
-    return torch.tensor(padded_X, dtype=torch.long), torch.tensor(X_lengths, dtype=torch.long)
+    return torch.tensor(padded_X, dtype=torch.long, device=device), torch.tensor(X_lengths,
+                                                          dtype=torch.long).to(device)
 
 
 def my_collate(batch):
