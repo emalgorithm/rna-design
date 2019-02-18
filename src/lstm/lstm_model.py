@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from data_util.data_constants import word_to_ix, tag_to_ix
+from data_util.data_constants import word_to_ix, tag_to_ix, device
 
 torch.manual_seed(1)
 
@@ -29,8 +29,8 @@ class LSTMModel(nn.Module):
         # Refer to the Pytorch documentation to see exactly
         # why they have this dimensionality.
         # The axes semantics are (num_layers, minibatch_size, hidden_dim)
-        return (torch.zeros(1, self.batch_size, self.hidden_dim),
-                torch.zeros(1, self.batch_size, self.hidden_dim))
+        return (torch.zeros(1, self.batch_size, self.hidden_dim).to(device),
+                torch.zeros(1, self.batch_size, self.hidden_dim).to(device))
 
     def forward(self, sentence, sentence_lenghts):
         self.hidden = self.init_hidden()
