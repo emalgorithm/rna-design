@@ -3,11 +3,11 @@ from lstm.lstm_model import LSTMModel
 import torch
 import torch.nn as nn
 import torch.optim as optim
-from sklearn.metrics import hamming_loss
 from data_util.rna_dataset import RNADataset
 from torchvision import transforms
 from visualization_util import plot_loss
 from data_util.data_constants import word_to_ix, tag_to_ix
+from evaluation import masked_hamming_loss
 
 # Model Definition
 EMBEDDING_DIM = 6
@@ -15,7 +15,7 @@ HIDDEN_DIM = 64
 batch_size = 32
 
 model = LSTMModel(EMBEDDING_DIM, HIDDEN_DIM, len(word_to_ix), len(tag_to_ix), batch_size=batch_size)
-loss_function = nn.NLLLoss()
+loss_function = nn.NLLLoss(ignore_index=tag_to_ix['<PAD>'])
 optimizer = optim.SGD(model.parameters(), lr=0.01)
 
 # Data Loading
@@ -35,14 +35,14 @@ test_loader = torch.utils.data.DataLoader(test_set, batch_size=batch_size, shuff
 def train_epoch(model, train_loader):
     avg_loss = 0
     h_loss = 0
-    for batch_idx, (sequences, dot_brackets) in enumerate(train_loader):
+    for batch_idx, (sequences, dot_brackets, sequences_lengths) in enumerate(train_loader):
         # Skip last batch if it does not have full size
         if sequences.shape[0] < batch_size:
             continue
         print("Batch {}".format(batch_idx))
         model.zero_grad()
 
-        base_scores = model(sequences)
+        base_scores = model(sequences, sequences_lengths)
 
         loss = loss_function(base_scores, dot_brackets.view(-1))
         loss.backward()
@@ -50,7 +50,7 @@ def train_epoch(model, train_loader):
 
         avg_loss += loss
         pred = base_scores.max(1)[1]
-        h_loss += hamming_loss(dot_brackets.view(-1), pred)
+        h_loss += masked_hamming_loss(dot_brackets.view(-1).numpy(), pred.numpy())
 
     avg_loss /= len(train_loader)
     h_loss /= len(train_loader)
@@ -64,6 +64,8 @@ def train_epoch(model, train_loader):
 def run(model, n_epochs, train_loader, test_loader):
     train_losses = []
     test_losses = []
+    train_h_losses = []
+    test_h_losses = []
 
     for epoch in range(n_epochs):
         print("Epoch {}: ".format(epoch + 1))
@@ -73,8 +75,11 @@ def run(model, n_epochs, train_loader, test_loader):
 
         train_losses.append(loss)
         test_losses.append(test_loss)
+        train_h_losses.append(h_loss)
+        test_h_losses.append(test_h_loss)
 
-        plot_loss(train_losses, test_losses)
+        plot_loss(train_losses, test_losses, file_name='loss2.jpg')
+        plot_loss(train_h_losses, test_h_losses, file_name='h_loss2.jpg')
 
 
 def evaluate(model, test_loader):
@@ -82,15 +87,16 @@ def evaluate(model, test_loader):
         loss = 0
         h_loss = 0
 
-        for batch_idx, (sequences, dot_brackets) in enumerate(test_loader):
+        for batch_idx, (sequences, dot_brackets, sequences_lengths) in enumerate(test_loader):
             # Skip last batch if it does not have full size
             if sequences.shape[0] < batch_size:
                 continue
 
-            base_scores = model(sequences)
+            base_scores = model(sequences, sequences_lengths)
+
             loss += loss_function(base_scores, dot_brackets.view(-1))
             pred = base_scores.max(1)[1]
-            h_loss += hamming_loss(dot_brackets.view(-1), pred)
+            h_loss += masked_hamming_loss(dot_brackets.view(-1).numpy(), pred.numpy())
 
         loss /= len(test_loader)
         h_loss /= len(test_loader)
