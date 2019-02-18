@@ -13,14 +13,14 @@ class LSTMModel(nn.Module):
         self.hidden_dim = hidden_dim
 
         padding_idx = word_to_ix['<PAD>']
-        self.word_embeddings = nn.Embedding(vocab_size, embedding_dim, padding_idx=padding_idx)
+        self.word_embeddings = nn.Embedding(vocab_size, embedding_dim, padding_idx=padding_idx).to(device)
 
         # The LSTM takes word embeddings as inputs, and outputs hidden states
         # with dimensionality hidden_dim.
-        self.lstm = nn.LSTM(embedding_dim, hidden_dim, batch_first=True)
+        self.lstm = nn.LSTM(embedding_dim, hidden_dim, batch_first=True).to(device)
 
         # The linear layer that maps from hidden state space to tag space
-        self.hidden2base = nn.Linear(hidden_dim, output_size)
+        self.hidden2base = nn.Linear(hidden_dim, output_size).to(device)
         self.batch_size = batch_size
         self.hidden = self.init_hidden()
 
@@ -34,7 +34,6 @@ class LSTMModel(nn.Module):
 
     def forward(self, sentence, sentence_lenghts):
         self.hidden = self.init_hidden()
-
         # sentence has shape (batch_size, seq_length)
         # embeds has shape (batch_size, seq_length, embedding_dim)
         embeds = self.word_embeddings(sentence)

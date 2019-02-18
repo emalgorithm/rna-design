@@ -12,4 +12,4 @@ def plot_loss(train_loss=[], val_loss=[], test_loss=[], file_name='loss.jpg', y_
     plt.xlabel('#epochs')
     plt.ylabel(y_label)
     # plt.show()
-    pylab.savefig('../../plots/' + file_name)
+    pylab.savefig('../plots/' + file_name)

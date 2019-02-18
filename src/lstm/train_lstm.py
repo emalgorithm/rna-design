@@ -39,7 +39,6 @@ def train_epoch(model, train_loader):
         # Skip last batch if it does not have full size
         if sequences.shape[0] < batch_size:
             continue
-        print("Batch {}".format(batch_idx))
         model.zero_grad()
 
         base_scores = model(sequences, sequences_lengths)
@@ -50,7 +49,7 @@ def train_epoch(model, train_loader):
 
         avg_loss += loss
         pred = base_scores.max(1)[1]
-        h_loss += masked_hamming_loss(dot_brackets.view(-1).numpy(), pred.numpy())
+        h_loss += masked_hamming_loss(dot_brackets.view(-1).cpu().numpy(), pred.cpu().numpy())
 
     avg_loss /= len(train_loader)
     h_loss /= len(train_loader)
@@ -96,7 +95,7 @@ def evaluate(model, test_loader):
 
             loss += loss_function(base_scores, dot_brackets.view(-1))
             pred = base_scores.max(1)[1]
-            h_loss += masked_hamming_loss(dot_brackets.view(-1).numpy(), pred.numpy())
+            h_loss += masked_hamming_loss(dot_brackets.view(-1).cpu().numpy(), pred.cpu().numpy())
 
         loss /= len(test_loader)
         h_loss /= len(test_loader)
@@ -107,4 +106,4 @@ def evaluate(model, test_loader):
         return loss, h_loss
 
 
-run(model, 50, train_loader, test_loader)
+run(model, 10000, train_loader, test_loader)
