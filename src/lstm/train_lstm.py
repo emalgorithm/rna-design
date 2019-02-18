@@ -24,8 +24,8 @@ y_transform = transforms.Lambda(lambda sequences: prepare_sequence(sequences, ta
 
 # train_set = RNADataset('../../data/temp_train/', x_transform=x_transform, y_transform=y_transform)
 # test_set = RNADataset('../../data/temp_test/', x_transform=x_transform, y_transform=y_transform)
-train_set = RNADataset('../../data/less_than_40/train/')
-test_set = RNADataset('../../data/less_than_40/test/')
+train_set = RNADataset('../data/less_than_40/train/')
+test_set = RNADataset('../data/less_than_40/test/')
 train_loader = torch.utils.data.DataLoader(train_set, batch_size=batch_size, shuffle=True,
                                            collate_fn=my_collate)
 test_loader = torch.utils.data.DataLoader(test_set, batch_size=batch_size, shuffle=False,
