@@ -8,6 +8,7 @@ from torchvision import transforms
 from visualization_util import plot_loss
 from data_util.data_constants import word_to_ix, tag_to_ix
 from evaluation import masked_hamming_loss
+import pickle
 
 # Model Definition
 EMBEDDING_DIM = 6
@@ -93,6 +94,15 @@ def run(model, n_epochs, train_loader, test_loader):
         plot_loss(train_losses, val_losses, test_losses, file_name='loss2.jpg')
         plot_loss(train_h_losses, val_h_losses, test_h_losses, file_name='h_loss2.jpg',
                   y_label='hamming_loss')
+
+        pickle.dump({
+            'train_losses': train_losses,
+            'val_losses': val_losses,
+            'test_losses': test_losses,
+            'train_h_losses': train_h_losses,
+            'val_h_losses': val_h_losses,
+            'test_h_losses': test_h_losses
+        }, open('res.pkl', 'wb'))
 
 
 def evaluate(model, test_loader, mode='test'):
