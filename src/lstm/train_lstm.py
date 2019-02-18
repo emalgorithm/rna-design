@@ -79,7 +79,7 @@ def run(model, n_epochs, train_loader, test_loader):
         test_loss, test_h_loss = evaluate(model, test_loader, mode='test')
         val_loss, val_h_loss = evaluate(model, val_loader, mode='val')
 
-        if val_h_loss < min(val_h_losses):
+        if not val_h_losses or val_h_loss < min(val_h_losses):
             torch.save(model.state_dict(), '../lstm.pt')
             print("Saved updated model")
 
