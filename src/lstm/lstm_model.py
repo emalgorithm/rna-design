@@ -1,26 +1,31 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from data_util.data_constants import word_to_ix, tag_to_ix, device
+from data_util.data_constants import word_to_ix, device
 
 torch.manual_seed(1)
 
 
 class LSTMModel(nn.Module):
 
-    def __init__(self, embedding_dim, hidden_dim, vocab_size=4, output_size=3, batch_size=1):
+    def __init__(self, embedding_dim, hidden_dim, num_layers=2, vocab_size=4, output_size=3,
+                 batch_size=1, bidirectional=True):
         super(LSTMModel, self).__init__()
         self.hidden_dim = hidden_dim
+        self.num_layers = num_layers
+        self.num_directions = 2 if bidirectional else 1
 
         padding_idx = word_to_ix['<PAD>']
         self.word_embeddings = nn.Embedding(vocab_size, embedding_dim, padding_idx=padding_idx).to(device)
 
         # The LSTM takes word embeddings as inputs, and outputs hidden states
         # with dimensionality hidden_dim.
-        self.lstm = nn.LSTM(embedding_dim, hidden_dim, bidirectional=True, batch_first=True).to(device)
+        self.lstm = nn.LSTM(embedding_dim, hidden_dim, num_layers=num_layers, bidirectional=True,
+                            batch_first=True).to(
+            device)
 
         # The linear layer that maps from hidden state space to tag space
-        self.hidden2base = nn.Linear(2 * hidden_dim, output_size).to(device)
+        self.hidden2base = nn.Linear(self.num_directions * hidden_dim, output_size).to(device)
         self.batch_size = batch_size
         self.hidden = self.init_hidden()
 
@@ -29,8 +34,8 @@ class LSTMModel(nn.Module):
         # Refer to the Pytorch documentation to see exactly
         # why they have this dimensionality.
         # The axes semantics are (num_layers * num_directions, minibatch_size, hidden_dim)
-        return (torch.zeros(2, self.batch_size, self.hidden_dim).to(device),
-                torch.zeros(2, self.batch_size, self.hidden_dim).to(device))
+        return (torch.zeros(self.num_layers * self.num_directions, self.batch_size, self.hidden_dim).to(device),
+                torch.zeros(self.num_layers * self.num_directions, self.batch_size, self.hidden_dim).to(device))
 
     def forward(self, sentence, sentence_lenghts):
         self.hidden = self.init_hidden()
