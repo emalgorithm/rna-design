@@ -17,10 +17,10 @@ class LSTMModel(nn.Module):
 
         # The LSTM takes word embeddings as inputs, and outputs hidden states
         # with dimensionality hidden_dim.
-        self.lstm = nn.LSTM(embedding_dim, hidden_dim, batch_first=True).to(device)
+        self.lstm = nn.LSTM(embedding_dim, hidden_dim, bidirectional=True, batch_first=True).to(device)
 
         # The linear layer that maps from hidden state space to tag space
-        self.hidden2base = nn.Linear(hidden_dim, output_size).to(device)
+        self.hidden2base = nn.Linear(2 * hidden_dim, output_size).to(device)
         self.batch_size = batch_size
         self.hidden = self.init_hidden()
 
@@ -28,9 +28,9 @@ class LSTMModel(nn.Module):
         # Before we've done anything, we dont have any hidden state.
         # Refer to the Pytorch documentation to see exactly
         # why they have this dimensionality.
-        # The axes semantics are (num_layers, minibatch_size, hidden_dim)
-        return (torch.zeros(1, self.batch_size, self.hidden_dim).to(device),
-                torch.zeros(1, self.batch_size, self.hidden_dim).to(device))
+        # The axes semantics are (num_layers * num_directions, minibatch_size, hidden_dim)
+        return (torch.zeros(2, self.batch_size, self.hidden_dim).to(device),
+                torch.zeros(2, self.batch_size, self.hidden_dim).to(device))
 
     def forward(self, sentence, sentence_lenghts):
         self.hidden = self.init_hidden()
