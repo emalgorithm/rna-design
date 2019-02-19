@@ -11,6 +11,7 @@ from evaluation import masked_hamming_loss, compute_accuracy, evaluate
 import pickle
 import sys
 import os
+import time
 
 
 # Model Definition
@@ -88,6 +89,7 @@ def run(model, n_epochs, train_loader, test_loader, model_dir):
     val_accuracies = []
 
     for epoch in range(n_epochs):
+        start = time.time()
         print("Epoch {}: ".format(epoch + 1))
 
         loss, h_loss, accuracy = train_epoch(model, train_loader)
@@ -95,6 +97,8 @@ def run(model, n_epochs, train_loader, test_loader, model_dir):
                                                          batch_size, mode='test')
         val_loss, val_h_loss, val_accuracy = evaluate(model, val_loader, loss_function,
                                                       batch_size, mode='val')
+        end = time.time()
+        print("Epoch took {0:.2f} seconds".format(end - start))
 
         if not val_h_losses or val_h_loss < min(val_h_losses):
             torch.save(model.state_dict(), model_dir + 'model.pt')
