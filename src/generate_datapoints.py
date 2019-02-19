@@ -24,21 +24,30 @@ import numpy as np
 #             pickle.dump(obj, open(individual_sequences_path + sequence_file, 'wb'))
 
 
+# def store_sequences(sequences, path):
+#     i = 1
+#     for sequence in sequences:
+#         sequence_file = '{}.rna'.format(i)
+#         i += 1
+#         dot_bracket = RNA.fold(sequence)[0]
+#         # adj_matrix = nx.to_scipy_sparse_matrix(dotbracket_to_graph(dot_bracket))
+#         print("Compute structure for sequence {}".format(i))
+#         obj = {
+#             'sequence': sequence,
+#             'dot_bracket': dot_bracket,
+#             # 'family': family,
+#             # 'adj_matrix': adj_matrix,
+#         }
+#         pickle.dump(obj, open(path + sequence_file, 'wb'))
+
 def store_sequences(sequences, path):
     i = 1
     for sequence in sequences:
         sequence_file = '{}.rna'.format(i)
+        pickle.dump(sequence, open(path + sequence_file, 'wb'))
         i += 1
-        dot_bracket = RNA.fold(sequence)[0]
-        # adj_matrix = nx.to_scipy_sparse_matrix(dotbracket_to_graph(dot_bracket))
-        print("Compute structure for sequence {}".format(i))
-        obj = {
-            'sequence': sequence,
-            'dot_bracket': dot_bracket,
-            # 'family': family,
-            # 'adj_matrix': adj_matrix,
-        }
-        pickle.dump(obj, open(path + sequence_file, 'wb'))
+        if i % 10000 == 0:
+            print("Done {} sequences".format(i))
 
 
 # sequences_with_folding = []
