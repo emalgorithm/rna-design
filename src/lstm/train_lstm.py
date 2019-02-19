@@ -7,7 +7,7 @@ from data_util.rna_dataset import RNADataset
 from torchvision import transforms
 from visualization_util import plot_loss
 from data_util.data_constants import word_to_ix, tag_to_ix
-from evaluation import masked_hamming_loss, compute_accuracy
+from evaluation import masked_hamming_loss, compute_accuracy, evaluate
 import pickle
 import sys
 import os
@@ -15,7 +15,7 @@ import os
 
 # Model Definition
 EMBEDDING_DIM = 6
-HIDDEN_DIM = 64
+HIDDEN_DIM = 128
 batch_size = 32
 
 model = LSTMModel(EMBEDDING_DIM, HIDDEN_DIM, len(word_to_ix), len(tag_to_ix), batch_size=batch_size)
@@ -75,6 +75,7 @@ def train_epoch(model, train_loader):
 
 
 def run(model, n_epochs, train_loader, test_loader, model_dir):
+    print("The model contains {} parameters".format(sum(p.numel() for p in model.parameters() if p.requires_grad)))
     train_losses = []
     test_losses = []
     val_losses = []
@@ -89,8 +90,10 @@ def run(model, n_epochs, train_loader, test_loader, model_dir):
         print("Epoch {}: ".format(epoch + 1))
 
         loss, h_loss, accuracy = train_epoch(model, train_loader)
-        test_loss, test_h_loss, test_accuracy = evaluate(model, test_loader, mode='test')
-        val_loss, val_h_loss, val_accuracy = evaluate(model, val_loader, mode='val')
+        test_loss, test_h_loss, test_accuracy = evaluate(model, test_loader, loss_function,
+                                                         batch_size, mode='test')
+        val_loss, val_h_loss, val_accuracy = evaluate(model, val_loader, loss_function,
+                                                      batch_size, mode='val')
 
         if not val_h_losses or val_h_loss < min(val_h_losses):
             torch.save(model.state_dict(), model_dir + 'model.pt')
@@ -124,37 +127,6 @@ def run(model, n_epochs, train_loader, test_loader, model_dir):
             'val_accuracies': val_accuracies,
             'test_accuracies': test_accuracies
         }, open(model_dir + 'scores.pkl', 'wb'))
-
-
-def evaluate(model, test_loader, mode='test'):
-    model.eval()
-    with torch.no_grad():
-        loss = 0
-        h_loss = 0
-        accuracy = 0
-
-        for batch_idx, (sequences, dot_brackets, sequences_lengths) in enumerate(test_loader):
-            # Skip last batch if it does not have full size
-            if sequences.shape[0] < batch_size:
-                continue
-
-            base_scores = model(sequences, sequences_lengths)
-
-            loss += loss_function(base_scores, dot_brackets.view(-1))
-            pred = base_scores.max(1)[1]
-            h_loss += masked_hamming_loss(dot_brackets.view(-1).cpu().numpy(), pred.cpu().numpy())
-            accuracy += compute_accuracy(dot_brackets.cpu().numpy(), pred.view_as(
-                dot_brackets).cpu().numpy())
-
-        loss /= len(test_loader)
-        h_loss /= len(test_loader)
-        accuracy /= len(test_loader)
-
-        print("{} loss: {}".format(mode, loss))
-        print("{} hamming loss: {}".format(mode, h_loss))
-        print("{} accuracy: {}".format(mode, accuracy))
-
-        return loss, h_loss, accuracy
 
 
 def main(model_name):
