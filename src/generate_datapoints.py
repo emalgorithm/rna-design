@@ -51,18 +51,19 @@ i = 0
 
 for family, sequences in list(family_to_sequences.items()):
     for sequence in sequences:
-        dot_bracket = RNA.fold(sequence)[0]
+        if len(sequence) <= 450:
+            dot_bracket = RNA.fold(sequence)[0]
 
-        if i % 1000 == 0:
-            print("Compute structure for sequence {}".format(i))
-        i += 1
+            if i % 1000 == 0:
+                print("Compute structure for sequence {}".format(i))
+            i += 1
 
-        datapoint = {
-            'sequence': sequence,
-            'dot_bracket': dot_bracket,
-            'family': family,
-        }
-        sequences_with_folding.append(datapoint)
+            datapoint = {
+                'sequence': sequence,
+                'dot_bracket': dot_bracket,
+                'family': family,
+            }
+            sequences_with_folding.append(datapoint)
 
 np.random.shuffle(sequences_with_folding)
 pickle.dump(sequences_with_folding, open('../data/sequences_with_folding.pkl', 'wb'))
