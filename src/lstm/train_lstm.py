@@ -30,9 +30,12 @@ y_transform = transforms.Lambda(lambda sequences: prepare_sequence(sequences, ta
 
 # train_set = RNADataset('../../data/temp_train/', x_transform=x_transform, y_transform=y_transform)
 # test_set = RNADataset('../../data/temp_test/', x_transform=x_transform, y_transform=y_transform)
-train_set = RNADataset('../data/less_than_40/train/')
-test_set = RNADataset('../data/less_than_40/test/')
-val_set = RNADataset('../data/less_than_40/val/')
+# train_set = RNADataset('../data/less_than_40/train/')
+# test_set = RNADataset('../data/less_than_40/test/')
+# val_set = RNADataset('../data/less_than_40/val/')
+train_set = RNADataset('../data/less_than_450/train/')
+test_set = RNADataset('../data/less_than_450/test/')
+val_set = RNADataset('../data/less_than_450/val/')
 train_loader = torch.utils.data.DataLoader(train_set, batch_size=batch_size, shuffle=True,
                                            collate_fn=my_collate)
 test_loader = torch.utils.data.DataLoader(test_set, batch_size=batch_size, shuffle=False,
@@ -100,7 +103,7 @@ def run(model, n_epochs, train_loader, test_loader, model_dir):
         end = time.time()
         print("Epoch took {0:.2f} seconds".format(end - start))
 
-        if not val_h_losses or val_h_loss < min(val_h_losses):
+        if not val_accuracies or val_accuracy > min(val_accuracies):
             torch.save(model.state_dict(), model_dir + 'model.pt')
             print("Saved updated model")
 
@@ -138,7 +141,7 @@ def main(model_name):
     model_dir = '../results/{}/'.format(model_name)
     if not os.path.exists(model_dir):
         os.makedirs(model_dir)
-    run(model, 10000, train_loader, test_loader, model_dir)
+    run(model, 1000, train_loader, test_loader, model_dir)
 
 
 if __name__ == "__main__":
