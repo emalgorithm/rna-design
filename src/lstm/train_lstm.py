@@ -18,12 +18,12 @@ import time
 # Model Definition
 EMBEDDING_DIM = 6
 HIDDEN_DIM = 128
-batch_size = 1024
+batch_size = 64
 
 model = LSTMModel(EMBEDDING_DIM, HIDDEN_DIM, vocab_size=len(word_to_ix), output_size=len(tag_to_ix),
                   batch_size=batch_size)
 loss_function = nn.NLLLoss(ignore_index=tag_to_ix['<PAD>'])
-optimizer = optim.SGD(model.parameters(), lr=0.2)
+optimizer = optim.Adam(model.parameters(), lr=0.2)
 
 # Data Loading
 x_transform = transforms.Lambda(lambda sequences: prepare_sequence(sequences, word_to_ix))
