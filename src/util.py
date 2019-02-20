@@ -56,9 +56,9 @@ def get_sequences_with_folding(family='RF00002'):
     return sequences_with_folding
 
 
-def get_all_sequences():
+def get_all_unique_sequences():
     family_to_sequences = get_family_to_sequences()
     all_sequences = np.array(list(family_to_sequences.values()))
     all_sequences = [item for sublist in all_sequences for item in sublist]
 
-    return all_sequences
+    return list(set(all_sequences))
