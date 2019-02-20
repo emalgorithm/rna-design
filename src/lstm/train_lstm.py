@@ -108,7 +108,7 @@ def run(model, n_epochs, train_loader, test_loader, model_dir):
         end = time.time()
         print("Epoch took {0:.2f} seconds".format(end - start))
 
-        if not val_accuracies or val_accuracy > min(val_accuracies):
+        if not val_accuracies or val_accuracy > max(val_accuracies):
             torch.save(model.state_dict(), model_dir + 'model.pt')
             print("Saved updated model")
 
