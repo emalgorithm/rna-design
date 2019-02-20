@@ -37,9 +37,9 @@ y_transform = transforms.Lambda(lambda sequences: prepare_sequence(sequences, ta
 # train_set = RNADataset('../data/less_than_450/train/')
 # test_set = RNADataset('../data/less_than_450/test/')
 # val_set = RNADataset('../data/less_than_450/val/')
-train_set = RNADatasetSingleFile('../data/sequences_with_folding_train.pkl', seq_max_len=40)
-test_set = RNADatasetSingleFile('../data/sequences_with_folding_test.pkl', seq_max_len=40)
-val_set = RNADatasetSingleFile('../data/sequences_with_folding_val.pkl', seq_max_len=40)
+train_set = RNADatasetSingleFile('../data/sequences_with_folding_train.pkl', seq_max_len=50)
+test_set = RNADatasetSingleFile('../data/sequences_with_folding_test.pkl', seq_max_len=50)
+val_set = RNADatasetSingleFile('../data/sequences_with_folding_val.pkl', seq_max_len=50)
 
 train_loader = torch.utils.data.DataLoader(train_set, batch_size=batch_size, shuffle=True,
                                            collate_fn=my_collate)
