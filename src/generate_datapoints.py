@@ -40,14 +40,14 @@ import numpy as np
 #         }
 #         pickle.dump(obj, open(path + sequence_file, 'wb'))
 
-def store_sequences(sequences, path):
-    i = 1
-    for sequence in sequences:
-        sequence_file = '{}.rna'.format(i)
-        pickle.dump(sequence, open(path + sequence_file, 'wb'))
-        i += 1
-        if i % 10000 == 0:
-            print("Done {} sequences".format(i))
+# def store_sequences(sequences, path):
+#     i = 1
+#     for sequence in sequences:
+#         sequence_file = '{}.rna'.format(i)
+#         pickle.dump(sequence, open(path + sequence_file, 'wb'))
+#         i += 1
+#         if i % 10000 == 0:
+#             print("Done {} sequences".format(i))
 
 
 # sequences_with_folding = []
@@ -82,9 +82,13 @@ np.random.shuffle(sequences)
 
 train, val, test = np.split(sequences, [int(.8*len(sequences)), int(.9*len(sequences))])
 
-store_sequences(train, '../data/less_than_450/train/')
-store_sequences(val, '../data/less_than_450/val/')
-store_sequences(test, '../data/less_than_450/test/')
+pickle.dump(train, open('../data/sequences_with_folding_train.pkl', 'wb'))
+pickle.dump(val, open('../data/sequences_with_folding_val.pkl', 'wb'))
+pickle.dump(test, open('../data/sequences_with_folding_test.pkl', 'wb'))
+
+# store_sequences(train, '../data/less_than_450/train/')
+# store_sequences(val, '../data/less_than_450/val/')
+# store_sequences(test, '../data/less_than_450/test/')
 
 
 
