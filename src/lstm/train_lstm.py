@@ -18,7 +18,7 @@ import time
 # Model Definition
 EMBEDDING_DIM = 6
 HIDDEN_DIM = 128
-batch_size = 256
+batch_size = 1024
 
 model = LSTMModel(EMBEDDING_DIM, HIDDEN_DIM, vocab_size=len(word_to_ix), output_size=len(tag_to_ix),
                   batch_size=batch_size)
