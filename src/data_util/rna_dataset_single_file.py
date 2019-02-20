@@ -11,6 +11,9 @@ class RNADatasetSingleFile(Dataset):
         self.data = pickle.load(open(file_path, 'rb'))
         self.data = [x for x in self.data if len(x['sequence']) <= seq_max_len]
 
+        print("{} sequences found at path {} with max length {}".format(len(self.data), file_path,
+                                                                            seq_max_len))
+
     def __len__(self):
         return len(self.data)
 
