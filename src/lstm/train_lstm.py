@@ -4,6 +4,7 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from data_util.rna_dataset import RNADataset
+from data_util.rna_dataset_single_file import RNADatasetSingleFile
 from torchvision import transforms
 from visualization_util import plot_loss
 from data_util.data_constants import word_to_ix, tag_to_ix
@@ -33,9 +34,13 @@ y_transform = transforms.Lambda(lambda sequences: prepare_sequence(sequences, ta
 # train_set = RNADataset('../data/less_than_40/train/')
 # test_set = RNADataset('../data/less_than_40/test/')
 # val_set = RNADataset('../data/less_than_40/val/')
-train_set = RNADataset('../data/less_than_450/train/')
-test_set = RNADataset('../data/less_than_450/test/')
-val_set = RNADataset('../data/less_than_450/val/')
+# train_set = RNADataset('../data/less_than_450/train/')
+# test_set = RNADataset('../data/less_than_450/test/')
+# val_set = RNADataset('../data/less_than_450/val/')
+train_set = RNADatasetSingleFile('../data/sequences_with_folding_train.pkl', seq_max_len=40)
+test_set = RNADatasetSingleFile('../data/sequences_with_folding_test.pkl', seq_max_len=40)
+val_set = RNADatasetSingleFile('../data/sequences_with_folding_val.pkl', seq_max_len=40)
+
 train_loader = torch.utils.data.DataLoader(train_set, batch_size=batch_size, shuffle=True,
                                            collate_fn=my_collate)
 test_loader = torch.utils.data.DataLoader(test_set, batch_size=batch_size, shuffle=False,
