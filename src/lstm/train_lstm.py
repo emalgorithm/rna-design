@@ -23,7 +23,7 @@ batch_size = 64
 model = LSTMModel(EMBEDDING_DIM, HIDDEN_DIM, vocab_size=len(word_to_ix), output_size=len(tag_to_ix),
                   batch_size=batch_size)
 loss_function = nn.NLLLoss(ignore_index=tag_to_ix['<PAD>'])
-optimizer = optim.Adam(model.parameters(), lr=0.2)
+optimizer = optim.Adam(model.parameters(), lr=0.05)
 
 # Data Loading
 x_transform = transforms.Lambda(lambda sequences: prepare_sequence(sequences, word_to_ix))
@@ -37,9 +37,9 @@ y_transform = transforms.Lambda(lambda sequences: prepare_sequence(sequences, ta
 # train_set = RNADataset('../data/less_than_450/train/')
 # test_set = RNADataset('../data/less_than_450/test/')
 # val_set = RNADataset('../data/less_than_450/val/')
-train_set = RNADatasetSingleFile('../data/sequences_with_folding_train.pkl', seq_max_len=50)
-test_set = RNADatasetSingleFile('../data/sequences_with_folding_test.pkl', seq_max_len=50)
-val_set = RNADatasetSingleFile('../data/sequences_with_folding_val.pkl', seq_max_len=50)
+train_set = RNADatasetSingleFile('../data/sequences_with_folding_train.pkl', seq_max_len=40)
+test_set = RNADatasetSingleFile('../data/sequences_with_folding_test.pkl', seq_max_len=40)
+val_set = RNADatasetSingleFile('../data/sequences_with_folding_val.pkl', seq_max_len=40)
 
 train_loader = torch.utils.data.DataLoader(train_set, batch_size=batch_size, shuffle=True,
                                            collate_fn=my_collate)
@@ -81,7 +81,7 @@ def train_epoch(model, train_loader):
     print("training hamming loss: {}".format(h_loss))
     print("accuracy: {}".format(accuracy))
 
-    return avg_loss, h_loss, accuracy
+    return avg_loss.item(), h_loss.item(), accuracy
 
 
 def run(model, n_epochs, train_loader, test_loader, model_dir):
