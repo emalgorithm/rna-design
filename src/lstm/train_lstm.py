@@ -24,7 +24,7 @@ parser.add_argument('--hidden_dim', type=int, default=128, help='Dimension of hi
 parser.add_argument('--embedding_dim', type=int, default=6, help='Dimension of embedding for '
                                                                    'the bases')
 parser.add_argument('--batch_size', type=int, default=64, help='Batch size')
-parser.add_argument('--learning_rate', type=float, default=0.05, help='Learning rate')
+parser.add_argument('--learning_rate', type=float, default=0.001, help='Learning rate')
 parser.add_argument('--seq_max_len', type=int, default=100, help='Maximum length of sequences '
                                                                  'used for training and testing')
 
