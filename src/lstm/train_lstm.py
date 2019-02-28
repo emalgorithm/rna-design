@@ -25,6 +25,8 @@ parser.add_argument('--embedding_dim', type=int, default=6, help='Dimension of e
                                                                    'the bases')
 parser.add_argument('--batch_size', type=int, default=64, help='Batch size')
 parser.add_argument('--learning_rate', type=int, default=0.05, help='Learning rate')
+parser.add_argument('--seq_max_len', type=int, default=100, help='Maximum length of sequences '
+                                                                 'used for training and testing')
 
 opt = parser.parse_args()
 print(opt)
@@ -66,6 +68,7 @@ def train_epoch(model, train_loader):
     accuracy = 0
 
     for batch_idx, (sequences, dot_brackets, sequences_lengths) in enumerate(train_loader):
+        print("batch")
         # Skip last batch if it does not have full size
         if sequences.shape[0] < opt.batch_size:
             continue
