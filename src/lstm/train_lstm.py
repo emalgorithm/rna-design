@@ -158,6 +158,8 @@ def main():
     model_dir = '../results/{}/'.format(opt.model_name)
     if not os.path.exists(model_dir):
         os.makedirs(model_dir)
+    with open(model_dir + 'hyperparams.txt', 'w') as f:
+        f.write(str(opt))
     run(model, opt.n_epochs, train_loader, test_loader, model_dir)
 
 
