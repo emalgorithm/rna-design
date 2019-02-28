@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from data_util.data_constants import word_to_ix, device
+from data_util.data_constants import word_to_ix
 
 torch.manual_seed(1)
 
@@ -9,7 +9,7 @@ torch.manual_seed(1)
 class LSTMModel(nn.Module):
 
     def __init__(self, embedding_dim, hidden_dim, num_layers=2, vocab_size=4, output_size=3,
-                 batch_size=1, bidirectional=True):
+                 batch_size=1, bidirectional=True, device="cpu"):
         super(LSTMModel, self).__init__()
         self.hidden_dim = hidden_dim
         self.num_layers = num_layers
