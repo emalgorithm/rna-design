@@ -2,7 +2,8 @@ import matplotlib.pyplot as plt
 import pylab
 
 
-def plot_loss(train_loss=[], val_loss=[], test_loss=[], file_name='loss.jpg', y_label='cross-entropy loss'):
+def plot_loss(train_loss=[], val_loss=[], test_loss=[], file_name='loss.jpg',
+              y_label='cross-entropy loss'):
     plt.clf()
     plt.plot(train_loss)
     plt.plot(val_loss)
@@ -12,4 +13,4 @@ def plot_loss(train_loss=[], val_loss=[], test_loss=[], file_name='loss.jpg', y_
     plt.xlabel('#epochs')
     plt.ylabel(y_label)
     # plt.show()
-    pylab.savefig('../plots/' + file_name)
+    pylab.savefig(file_name)
