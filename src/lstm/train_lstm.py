@@ -24,7 +24,7 @@ parser.add_argument('--hidden_dim', type=int, default=128, help='Dimension of hi
 parser.add_argument('--embedding_dim', type=int, default=6, help='Dimension of embedding for '
                                                                    'the bases')
 parser.add_argument('--batch_size', type=int, default=64, help='Batch size')
-parser.add_argument('--learning_rate', type=int, default=0.05, help='Learning rate')
+parser.add_argument('--learning_rate', type=float, default=0.05, help='Learning rate')
 parser.add_argument('--seq_max_len', type=int, default=100, help='Maximum length of sequences '
                                                                  'used for training and testing')
 
@@ -32,8 +32,7 @@ opt = parser.parse_args()
 print(opt)
 
 model = LSTMModel(opt.embedding_dim, opt.hidden_dim, vocab_size=len(word_to_ix), output_size=len(
-    tag_to_ix),
-                  batch_size=opt.batch_size)
+    tag_to_ix), batch_size=opt.batch_size, device=opt.device)
 loss_function = nn.NLLLoss(ignore_index=tag_to_ix['<PAD>'])
 optimizer = optim.Adam(model.parameters(), lr=opt.learning_rate)
 
@@ -68,7 +67,10 @@ def train_epoch(model, train_loader):
     accuracy = 0
 
     for batch_idx, (sequences, dot_brackets, sequences_lengths) in enumerate(train_loader):
-        print("batch")
+        sequences = sequences.to(opt.device)
+        dot_brackets = dot_brackets.to(opt.device)
+        sequences_lengths = sequences_lengths.to(opt.device)
+
         # Skip last batch if it does not have full size
         if sequences.shape[0] < opt.batch_size:
             continue
@@ -115,9 +117,9 @@ def run(model, n_epochs, train_loader, test_loader, model_dir):
 
         loss, h_loss, accuracy = train_epoch(model, train_loader)
         # test_loss, test_h_loss, test_accuracy = evaluate(model, test_loader, loss_function,
-        #                                                  batch_size, mode='test')
+        #                                                  batch_size, mode='test', device=opt.device)
         val_loss, val_h_loss, val_accuracy = evaluate(model, val_loader, loss_function,
-                                                      opt.batch_size, mode='val')
+                                                      opt.batch_size, mode='val', device=opt.device)
         end = time.time()
         print("Epoch took {0:.2f} seconds".format(end - start))
 

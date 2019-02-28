@@ -17,7 +17,7 @@ def compute_accuracy(target, pred, ignore_idx=0):
     return accuracy / len(pred)
 
 
-def evaluate(model, test_loader, loss_function, batch_size, mode='test'):
+def evaluate(model, test_loader, loss_function, batch_size, mode='test', device='cpu'):
     model.eval()
     with torch.no_grad():
         loss = 0
@@ -25,6 +25,10 @@ def evaluate(model, test_loader, loss_function, batch_size, mode='test'):
         accuracy = 0
 
         for batch_idx, (sequences, dot_brackets, sequences_lengths) in enumerate(test_loader):
+            sequences = sequences.to(device)
+            dot_brackets = dot_brackets.to(device)
+            sequences_lengths = sequences_lengths.to(device)
+
             # Skip last batch if it does not have full size
             if sequences.shape[0] < batch_size:
                 continue
@@ -45,4 +49,4 @@ def evaluate(model, test_loader, loss_function, batch_size, mode='test'):
         print("{} hamming loss: {}".format(mode, h_loss))
         print("{} accuracy: {}".format(mode, accuracy))
 
-        return loss, h_loss, accuracy
+        return loss.item(), h_loss, accuracy

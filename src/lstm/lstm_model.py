@@ -27,6 +27,7 @@ class LSTMModel(nn.Module):
         # The linear layer that maps from hidden state space to tag space
         self.hidden2base = nn.Linear(self.num_directions * hidden_dim, output_size).to(device)
         self.batch_size = batch_size
+        self.device = device
         self.hidden = self.init_hidden()
 
     def init_hidden(self):
@@ -34,8 +35,8 @@ class LSTMModel(nn.Module):
         # Refer to the Pytorch documentation to see exactly
         # why they have this dimensionality.
         # The axes semantics are (num_layers * num_directions, minibatch_size, hidden_dim)
-        return (torch.zeros(self.num_layers * self.num_directions, self.batch_size, self.hidden_dim).to(device),
-                torch.zeros(self.num_layers * self.num_directions, self.batch_size, self.hidden_dim).to(device))
+        return (torch.zeros(self.num_layers * self.num_directions, self.batch_size, self.hidden_dim).to(self.device),
+                torch.zeros(self.num_layers * self.num_directions, self.batch_size, self.hidden_dim).to(self.device))
 
     def forward(self, sentence, sentence_lenghts):
         self.hidden = self.init_hidden()
