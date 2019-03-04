@@ -32,7 +32,8 @@ parser.add_argument('--lstm_layers', type=int, default=2, help='Number of layers
 opt = parser.parse_args()
 print(opt)
 
-model = LSTMModel(opt.embedding_dim, opt.hidden_dim, vocab_size=len(word_to_ix), output_size=len(
+model = LSTMModel(opt.embedding_dim, opt.hidden_dim, num_layers=opt.lstm_layers, vocab_size=len(word_to_ix),
+                  output_size=len(
     tag_to_ix), batch_size=opt.batch_size, device=opt.device)
 loss_function = nn.NLLLoss(ignore_index=tag_to_ix['<PAD>'])
 optimizer = optim.Adam(model.parameters(), lr=opt.learning_rate)
