@@ -27,6 +27,7 @@ parser.add_argument('--batch_size', type=int, default=64, help='Batch size')
 parser.add_argument('--learning_rate', type=float, default=0.001, help='Learning rate')
 parser.add_argument('--seq_max_len', type=int, default=100, help='Maximum length of sequences '
                                                                  'used for training and testing')
+parser.add_argument('--lstm_layers', type=int, default=2, help='Number of layers of the lstm')
 
 opt = parser.parse_args()
 print(opt)
