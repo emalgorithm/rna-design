@@ -28,13 +28,13 @@ parser.add_argument('--learning_rate', type=float, default=0.001, help='Learning
 parser.add_argument('--seq_max_len', type=int, default=100, help='Maximum length of sequences '
                                                                  'used for training and testing')
 parser.add_argument('--lstm_layers', type=int, default=2, help='Number of layers of the lstm')
+parser.add_argument('--dropout', type=int, default=2, help='Amount of dropout')
 
 opt = parser.parse_args()
 print(opt)
 
 model = LSTMModel(opt.embedding_dim, opt.hidden_dim, num_layers=opt.lstm_layers, vocab_size=len(word_to_ix),
-                  output_size=len(
-    tag_to_ix), batch_size=opt.batch_size, device=opt.device)
+                  output_size=len(tag_to_ix), batch_size=opt.batch_size, device=opt.device)
 loss_function = nn.NLLLoss(ignore_index=tag_to_ix['<PAD>'])
 optimizer = optim.Adam(model.parameters(), lr=opt.learning_rate)
 
@@ -86,10 +86,10 @@ def train_epoch(model, train_loader):
         base_scores = model(sequences, sequences_lengths)
 
         loss = loss_function(base_scores, dot_brackets.view(-1))
+        avg_loss += loss
         loss.backward()
         optimizer.step()
 
-        avg_loss += loss
         pred = base_scores.max(1)[1]
         h_loss += masked_hamming_loss(dot_brackets.view(-1).cpu().numpy(), pred.cpu().numpy())
         accuracy += compute_accuracy(dot_brackets.cpu().numpy(), pred.view_as(
