@@ -106,7 +106,7 @@ def train_epoch(model, train_loader):
     return avg_loss.item(), h_loss, accuracy
 
 
-def run(model, n_epochs, train_loader, test_loader, model_dir):
+def run(model, n_epochs, train_loader, test_loader, results_dir, model_dir):
     print("The model contains {} parameters".format(sum(p.numel() for p in model.parameters() if p.requires_grad)))
     train_losses = []
     # test_losses = []
@@ -144,10 +144,10 @@ def run(model, n_epochs, train_loader, test_loader, model_dir):
         # test_accuracies.append(test_accuracy)
         val_accuracies.append(val_accuracy)
 
-        plot_loss(train_losses, val_losses, file_name=model_dir + 'loss.jpg')
-        plot_loss(train_h_losses, val_h_losses, file_name=model_dir + 'h_loss.jpg',
+        plot_loss(train_losses, val_losses, file_name=results_dir + 'loss.jpg')
+        plot_loss(train_h_losses, val_h_losses, file_name=results_dir + 'h_loss.jpg',
                   y_label='hamming_loss')
-        plot_loss(train_accuracies, val_accuracies, file_name=model_dir + 'acc.jpg',
+        plot_loss(train_accuracies, val_accuracies, file_name=results_dir + 'acc.jpg',
                   y_label='accuracy')
 
         pickle.dump({
@@ -160,16 +160,19 @@ def run(model, n_epochs, train_loader, test_loader, model_dir):
             'train_accuracies': train_accuracies,
             'val_accuracies': val_accuracies,
             # 'test_accuracies': test_accuracies
-        }, open(model_dir + 'scores.pkl', 'wb'))
+        }, open(results_dir + 'scores.pkl', 'wb'))
 
 
 def main():
-    model_dir = '../results/{}/'.format(opt.model_name)
-    if not os.path.exists(model_dir):
-        os.makedirs(model_dir)
-    with open(model_dir + 'hyperparams.txt', 'w') as f:
+    results_dir = '../results/{}/'.format(opt.model_name)
+    model_dir = '../models/{}/'.format(opt.model_name)
+    os.makedirs(results_dir, exist_ok=True)
+    os.makedirs(model_dir, exist_ok=True)
+
+    with open(results_dir + 'hyperparams.txt', 'w') as f:
         f.write(str(opt))
-    run(model, opt.n_epochs, train_loader, test_loader, model_dir)
+
+    run(model, opt.n_epochs, train_loader, test_loader, results_dir, model_dir)
 
 
 if __name__ == "__main__":

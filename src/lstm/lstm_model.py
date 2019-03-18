@@ -21,8 +21,7 @@ class LSTMModel(nn.Module):
         # The LSTM takes word embeddings as inputs, and outputs hidden states
         # with dimensionality hidden_dim.
         self.lstm = nn.LSTM(embedding_dim, hidden_dim, num_layers=num_layers, bidirectional=True,
-                            batch_first=True).to(
-            device)
+                            batch_first=True).to(device)
 
         # The linear layer that maps from hidden state space to tag space
         self.hidden2base = nn.Linear(self.num_directions * hidden_dim, output_size).to(device)
