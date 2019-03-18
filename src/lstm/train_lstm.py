@@ -28,7 +28,7 @@ parser.add_argument('--learning_rate', type=float, default=0.001, help='Learning
 parser.add_argument('--seq_max_len', type=int, default=100, help='Maximum length of sequences '
                                                                  'used for training and testing')
 parser.add_argument('--lstm_layers', type=int, default=2, help='Number of layers of the lstm')
-parser.add_argument('--dropout', type=int, default=2, help='Amount of dropout')
+parser.add_argument('--dropout', type=float, default=2, help='Amount of dropout')
 
 opt = parser.parse_args()
 print(opt)
