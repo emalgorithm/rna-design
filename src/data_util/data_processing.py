@@ -1,11 +1,28 @@
 import numpy as np
 import torch
-from data_util.data_constants import word_to_ix, tag_to_ix
+from src.data_util.data_constants import word_to_ix, tag_to_ix
 
 
 def prepare_sequence(seq, to_ix):
     idxs = [to_ix[w] for w in seq]
-    return torch.tensor(idxs, dtype=torch.long).to(device)
+    return torch.tensor(idxs, dtype=torch.long)
+
+
+def decode_sequence(seq, to_ix):
+    idxs = [to_ix[w] for w in seq]
+    return ''.join(idxs)
+
+
+def one_hot_embed_sequence(seq, to_ix):
+    idxs = [to_ix[w] for w in seq]
+    x = []
+
+    for idx in idxs:
+        v = np.zeros((len(to_ix)))
+        v[idx] = 1
+        x.append(v)
+
+    return torch.tensor(x, dtype=torch.float)
 
 
 def prepare_sequences(seqs, to_ix):
