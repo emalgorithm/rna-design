@@ -152,7 +152,7 @@ for epoch in range(opt.n_epochs):
         g_loss = adversarial_loss(discriminator_generated_score, valid)
 
         # if epoch < 100 or epoch > 1000:
-        if g_loss.item() > 0.1:
+        if g_loss.item() > 0.5:
             g_loss.backward()
             optimizer_G.step()
 
