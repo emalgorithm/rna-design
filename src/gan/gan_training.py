@@ -35,6 +35,8 @@ parser.add_argument("--img_size", type=int, default=28, help="size of each image
 parser.add_argument("--channels", type=int, default=1, help="number of image channels")
 parser.add_argument("--sample_interval", type=int, default=400, help="interval betwen image samples")
 parser.add_argument('--n_samples', type=int, default=None, help='Number of samples to train on')
+parser.add_argument('--max_seq_len', type=int, default=100, help='Max len of sequences used')
+parser.add_argument('--min_seq_len', type=int, default=100, help='Min len of sequences used')
 opt = parser.parse_args()
 print(opt)
 
@@ -71,8 +73,9 @@ Tensor = torch.cuda.FloatTensor if cuda else torch.FloatTensor
 
 n_train_samples = None if not opt.n_samples else int(opt.n_samples * 0.8)
 n_val_samples = None if not opt.n_samples else int(opt.n_samples * 0.1)
-train_set = RNADatasetSingleFile('../data/sequences_with_folding_train.pkl', seq_max_len=10,
-                                 seq_min_len=10, graph=False, n_samples=n_train_samples)
+train_set = RNADatasetSingleFile('../data/sequences_with_folding_train.pkl',
+                                 seq_max_len=opt.max_seq_len, seq_min_len=opt.min_seq_len,
+                                 graph=False, n_samples=n_train_samples)
 # test_set = RNADatasetSingleFile('../../data/sequences_with_folding_test.pkl',
 #                                 seq_max_len=opt.seq_max_len, graph=False, n_samples=n_val_samples)
 # val_set = RNADatasetSingleFile('../../data/sequences_with_folding_val.pkl',
