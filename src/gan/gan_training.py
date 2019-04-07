@@ -100,7 +100,7 @@ for epoch in range(opt.n_epochs):
         ###
         # Train only on sequences with interesting fold
         if ')' not in dot_bracket[0]:
-            pass
+            continue
 
         # Batch contains a single element, extract it
         dot_bracket = dot_bracket[0]
