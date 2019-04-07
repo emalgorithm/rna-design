@@ -9,6 +9,7 @@ from torch.utils.data import DataLoader
 from torch.autograd import Variable
 
 import torch
+import RNA
 
 from src.gan.gcn_generator import GCNGenerator
 from src.gan.rnn_generator import RNNGenerator
@@ -36,7 +37,7 @@ parser.add_argument("--channels", type=int, default=1, help="number of image cha
 parser.add_argument("--sample_interval", type=int, default=400, help="interval betwen image samples")
 parser.add_argument('--n_samples', type=int, default=None, help='Number of samples to train on')
 parser.add_argument('--max_seq_len', type=int, default=100, help='Max len of sequences used')
-parser.add_argument('--min_seq_len', type=int, default=0, help='Min len of sequences used')
+parser.add_argument('--min_seq_len', type=int, default=2, help='Min len of sequences used')
 opt = parser.parse_args()
 print(opt)
 
@@ -160,6 +161,8 @@ for epoch in range(opt.n_epochs):
             print(generated_x)
             print(pred)
             print("Discriminator generated score: {}".format(discriminator_generated_score))
+            print("Real dot-bracket: {}".format(dot_bracket))
+            print("MFE dot-bracket:  {}".format(RNA.fold(pred)[0]))
 
         # ---------------------
         #  Train Discriminator
