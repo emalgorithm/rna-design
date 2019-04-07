@@ -111,7 +111,7 @@ for epoch in range(opt.n_epochs):
 
         g = dotbracket_to_graph(dot_bracket)
         sample_y = nx.adjacency_matrix(g, nodelist=sorted(list(g.nodes())))
-        adj = sparse_mx_to_torch_sparse_tensor(sample_y).to(device)
+        # adj = sparse_mx_to_torch_sparse_tensor(sample_y).to(device)
 
         x = one_hot_embed_sequence(seq, word_to_ix).to(device)
         hot_embedded_dot_bracket = one_hot_embed_sequence(dot_bracket, tag_to_ix).to(device)
