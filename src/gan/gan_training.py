@@ -125,6 +125,11 @@ for epoch in range(opt.n_epochs):
         valid = Variable(Tensor(1).fill_(1.0), requires_grad=False)
         fake = Variable(Tensor(1).fill_(0.0), requires_grad=False)
 
+        # TODO: generated_x is continuous softmax, whereas x is one-hot. So for the discriminator
+        #  it is very easy to distinguish between them, as the generator can just learn to accept
+        #  only one-hot encodings. If I transform the generated matrix into one-hot using a max,
+        #  I'm not sure how the learning would go (gradient)
+
         # -----------------
         #  Train Generator
         # -----------------
@@ -132,8 +137,6 @@ for epoch in range(opt.n_epochs):
         optimizer_G.zero_grad()
 
         # Sample noise as generator input
-        # # TODO: Reinsert noise here
-        # z = Variable(Tensor(r))
         z = Variable(Tensor(np.random.normal(0, 1, n_features)))
 
         # Generate graph features
@@ -149,24 +152,9 @@ for epoch in range(opt.n_epochs):
         g_loss = adversarial_loss(discriminator_generated_score, valid)
 
         # if epoch < 100 or epoch > 1000:
-        g_loss.backward()
-        optimizer_G.step()
-
-        if i % 20 == 0:
-            print("Real:")
-            # print(x)
-            print(seq)
-            print("Discriminator real score: {}".format(discriminator_real_score))
-            print("Generated:")
-            # TODO: generated_x is continuous softmax, whereas x is one-hot. So for the discriminator
-            #  it is very easy to distinguish between them, as the generator can just learn to accept
-            #  only one-hot encodings. If I transform the generated matrix into one-hot using a max,
-            #  I'm not sure how the learning would go (gradient)
-            print(generated_x)
-            print(pred)
-            print("Discriminator generated score: {}".format(discriminator_generated_score))
-            print("Real dot-bracket: {}".format(dot_bracket))
-            print("MFE dot-bracket:  {}".format(RNA.fold(pred)[0]))
+        if g_loss.item() > 0.1:
+            g_loss.backward()
+            optimizer_G.step()
 
         # ---------------------
         #  Train Discriminator
@@ -184,7 +172,19 @@ for epoch in range(opt.n_epochs):
         d_loss.backward()
         optimizer_D.step()
 
-        print("[Epoch %d/%d] [Batch %d/%d] [D loss: %f] [G loss: %f]" % (epoch, opt.n_epochs, i, len(train_loader),
+        if i % 20 == 0:
+            print("Real:")
+            # print(x)
+            print(seq)
+            print("Discriminator real score: {}".format(discriminator_real_score))
+            print("Generated:")
+            print(generated_x)
+            print(pred)
+            print("Discriminator generated score: {}".format(discriminator_generated_score))
+            print("Real dot-bracket: {}".format(dot_bracket))
+            print("MFE dot-bracket:  {}".format(RNA.fold(pred)[0]))
+
+            print("[Epoch %d/%d] [Batch %d/%d] [D loss: %f] [G loss: %f]" % (epoch, opt.n_epochs, i, len(train_loader),
                                                             d_loss.item(), g_loss.item()))
 
         batches_done = epoch * len(train_loader) + i

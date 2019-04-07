@@ -49,6 +49,7 @@ def evaluate_gan(generator, data_loader, n_features, device):
         pred_sequence = decode_sequence(pred, ix_to_word)
 
         pred_dot_bracket = RNA.fold(pred_sequence)[0]
+        # TODO: Compute accuracy and hamming loss to closest in top 10 foldings
         matches.append(pred_dot_bracket == dot_bracket)
         hamming_dists.append(hamming_loss(list(dot_bracket), list(pred_dot_bracket)))
 
