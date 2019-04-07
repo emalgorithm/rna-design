@@ -98,6 +98,9 @@ for epoch in range(opt.n_epochs):
         ###
         # Extract input for all models
         ###
+        # Train only on sequences with interesting fold
+        if ')' not in dot_bracket[0]:
+            pass
 
         # Batch contains a single element, extract it
         dot_bracket = dot_bracket[0]
@@ -148,7 +151,7 @@ for epoch in range(opt.n_epochs):
         g_loss.backward()
         optimizer_G.step()
 
-        if i % 100 == 0:
+        if i % 20 == 0:
             print("Real:")
             # print(x)
             print(seq)
