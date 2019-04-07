@@ -22,6 +22,7 @@ from src.data_util.data_constants import word_to_ix, tag_to_ix, ix_to_word
 import networkx as nx
 from src.gcn.gcn_util import sparse_mx_to_torch_sparse_tensor
 from src.util import dotbracket_to_graph
+from src.gan.gan_evaluation import evaluate_gan
 
 
 parser = argparse.ArgumentParser()
@@ -95,13 +96,13 @@ for epoch in range(opt.n_epochs):
     generator.train()
     discriminator.train()
     for i, (seq, dot_bracket) in enumerate(train_loader):
-        ###
-        # Extract input for all models
-        ###
         # Train only on sequences with interesting fold
         if ')' not in dot_bracket[0]:
             continue
 
+        ###
+        # Extract input for all models
+        ###
         # Batch contains a single element, extract it
         dot_bracket = dot_bracket[0]
         seq = seq[0]
@@ -188,5 +189,6 @@ for epoch in range(opt.n_epochs):
 
         batches_done = epoch * len(train_loader) + i
 
+    evaluate_gan(generator, train_loader, n_features, device)
 
 

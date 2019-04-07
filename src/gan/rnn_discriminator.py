@@ -3,7 +3,7 @@ import torch
 
 
 class RNNDiscriminator(nn.Module):
-    def __init__(self, device):
+    def __init__(self, device="cpu"):
         super(RNNDiscriminator, self).__init__()
         self.lstm = nn.LSTM(input_size=9, hidden_size=256, num_layers=1,
                             bidirectional=False, batch_first=True)
