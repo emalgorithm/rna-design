@@ -52,10 +52,10 @@ adversarial_loss = torch.nn.BCELoss()
 
 # Initialize generator and discriminator
 # generator = GCNGenerator(n_features=n_features)
-generator = RNNGenerator()
+generator = RNNGenerator(device=device)
 # Discriminator has 6 features which corresponds to the 1-hot encoding of the possible labels
 # discriminator = FCDiscriminator(40)
-discriminator = RNNDiscriminator()
+discriminator = RNNDiscriminator(device=device)
 # discriminator = GCNDiscriminator(n_features=len(word_to_ix))
 
 if cuda:
