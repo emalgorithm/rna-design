@@ -36,7 +36,7 @@ parser.add_argument("--channels", type=int, default=1, help="number of image cha
 parser.add_argument("--sample_interval", type=int, default=400, help="interval betwen image samples")
 parser.add_argument('--n_samples', type=int, default=None, help='Number of samples to train on')
 parser.add_argument('--max_seq_len', type=int, default=100, help='Max len of sequences used')
-parser.add_argument('--min_seq_len', type=int, default=100, help='Min len of sequences used')
+parser.add_argument('--min_seq_len', type=int, default=0, help='Min len of sequences used')
 opt = parser.parse_args()
 print(opt)
 
@@ -134,22 +134,11 @@ for epoch in range(opt.n_epochs):
         # Generate graph features
         generated_x = generator(hot_embedded_dot_bracket, sequences_lengths, z)
         # generated_x = generator(adj, z, n_nodes=len(x))
-        print("Real:")
-        print(x)
-        print(seq)
+
         discriminator_real_score = discriminator(x, hot_embedded_dot_bracket)
-        print("Discriminator real score: {}".format(discriminator_real_score))
-        print("Generated:")
-        # TODO: generated_x is continuous softmax, whereas x is one-hot. So for the discriminator
-        #  it is very easy to distinguish between them, as the generator can just learn to accept
-        #  only one-hot encodings. If I transform the generated matrix into one-hot using a max,
-        #  I'm not sure how the learning would go (gradient)
-        print(generated_x)
         pred = generated_x.max(1)[1].cpu().numpy()
         pred = decode_sequence(pred, ix_to_word)
-        print(pred)
         discriminator_generated_score = discriminator(generated_x, hot_embedded_dot_bracket)
-        print("Discriminator generated score: {}".format(discriminator_generated_score))
 
         # Loss measures generator's ability to fool the discriminator
         g_loss = adversarial_loss(discriminator_generated_score, valid)
@@ -157,6 +146,20 @@ for epoch in range(opt.n_epochs):
         # if epoch < 100 or epoch > 1000:
         g_loss.backward()
         optimizer_G.step()
+
+        if i % 100 == 0:
+            print("Real:")
+            # print(x)
+            print(seq)
+            print("Discriminator real score: {}".format(discriminator_real_score))
+            print("Generated:")
+            # TODO: generated_x is continuous softmax, whereas x is one-hot. So for the discriminator
+            #  it is very easy to distinguish between them, as the generator can just learn to accept
+            #  only one-hot encodings. If I transform the generated matrix into one-hot using a max,
+            #  I'm not sure how the learning would go (gradient)
+            print(generated_x)
+            print(pred)
+            print("Discriminator generated score: {}".format(discriminator_generated_score))
 
         # ---------------------
         #  Train Discriminator
