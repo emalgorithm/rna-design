@@ -8,17 +8,17 @@ import torch.nn.functional as F
 
 
 class RNNGenerator(nn.Module):
-    def __init__(self, device="cpu"):
+    def __init__(self, device="cpu", num_directions=2, batch_size=1, num_layers=1, hidden_dim=256):
         super(RNNGenerator, self).__init__()
-        self.lstm = nn.LSTM(input_size=len(tag_to_ix), hidden_size=256, num_layers=1,
-                            bidirectional=True, batch_first=True)
-        self.num_directions = 2
-        self.batch_size = 1
-        self.num_layers = 1
+        self.lstm = nn.LSTM(input_size=len(tag_to_ix), hidden_size=hidden_dim, num_layers=num_layers,
+                            bidirectional=(num_directions == 2), batch_first=True)
+        self.num_directions = num_directions
+        self.batch_size = batch_size
+        self.num_layers = num_layers
         self.device = device
-        self.hidden_dim = 256
+        self.hidden_dim = hidden_dim
         self.hidden = self.init_hidden()
-        self.fc = nn.Linear(256 * 2, len(word_to_ix))
+        self.fc = nn.Linear(hidden_dim * num_directions, len(word_to_ix))
 
     def init_hidden(self, initial_hidden=None):
         if initial_hidden is None:
