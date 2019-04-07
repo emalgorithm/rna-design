@@ -8,7 +8,7 @@ import torch.nn.functional as F
 
 
 class RNNGenerator(nn.Module):
-    def __init__(self, device="cpu", num_directions=2, batch_size=1, num_layers=1, hidden_dim=256):
+    def __init__(self, device="cpu", num_directions=2, batch_size=1, num_layers=1, hidden_dim=512):
         super(RNNGenerator, self).__init__()
         self.lstm = nn.LSTM(input_size=len(tag_to_ix), hidden_size=hidden_dim, num_layers=num_layers,
                             bidirectional=(num_directions == 2), batch_first=True)
