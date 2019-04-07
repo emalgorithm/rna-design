@@ -20,11 +20,13 @@ class RNNGenerator(nn.Module):
         self.hidden = self.init_hidden()
         self.fc = nn.Linear(256 * 2, len(word_to_ix))
 
-    def init_hidden(self):
-        return (torch.zeros(self.num_layers * self.num_directions, self.batch_size,
-                            self.hidden_dim).to(self.device),
-                torch.zeros(self.num_layers * self.num_directions, self.batch_size,
-                            self.hidden_dim).to(self.device))
+    def init_hidden(self, initial_hidden=None):
+        if initial_hidden is None:
+            initial_hidden = torch.zeros(self.hidden_dim).to(self.device)
+        # The axes semantics are (num_layers * num_directions, minibatch_size, hidden_dim)
+        return (initial_hidden.repeat(self.num_layers * self.num_directions, self.batch_size,
+                                      1).to(self.device),
+                torch.zeros(self.num_layers * self.num_directions, self.batch_size, self.hidden_dim).to(self.device))
 
     def forward(self, x, _, z):
         x = torch.unsqueeze(x, 0)
