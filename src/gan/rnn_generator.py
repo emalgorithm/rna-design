@@ -8,20 +8,23 @@ import torch.nn.functional as F
 
 
 class RNNGenerator(nn.Module):
-    def __init__(self):
+    def __init__(self, device="cpu"):
         super(RNNGenerator, self).__init__()
         self.lstm = nn.LSTM(input_size=len(tag_to_ix), hidden_size=256, num_layers=1,
                             bidirectional=True, batch_first=True)
         self.num_directions = 2
         self.batch_size = 1
         self.num_layers = 1
+        self.device = device
         self.hidden_dim = 256
         self.hidden = self.init_hidden()
         self.fc = nn.Linear(256 * 2, len(word_to_ix))
 
     def init_hidden(self):
-        return (torch.zeros(self.num_layers * self.num_directions, self.batch_size, self.hidden_dim),
-                torch.zeros(self.num_layers * self.num_directions, self.batch_size, self.hidden_dim))
+        return (torch.zeros(self.num_layers * self.num_directions, self.batch_size,
+                            self.hidden_dim).to(self.device),
+                torch.zeros(self.num_layers * self.num_directions, self.batch_size,
+                            self.hidden_dim).to(self.device))
 
     def forward(self, x, _, z):
         x = torch.unsqueeze(x, 0)
