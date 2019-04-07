@@ -142,7 +142,7 @@ for epoch in range(opt.n_epochs):
         #  only one-hot encodings. If I transform the generated matrix into one-hot using a max,
         #  I'm not sure how the learning would go (gradient)
         print(generated_x)
-        pred = generated_x.max(1)[1].numpy()
+        pred = generated_x.max(1)[1].cpu().numpy()
         pred = decode_sequence(pred, ix_to_word)
         print(pred)
         discriminator_generated_score = discriminator(generated_x, hot_embedded_dot_bracket)
