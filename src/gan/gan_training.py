@@ -39,6 +39,7 @@ opt = parser.parse_args()
 print(opt)
 
 cuda = True if torch.cuda.is_available() else False
+device = "cuda" if cuda else "cpu"
 
 # The graph comes with no features, but the GCN needs features on each node.
 # To overcome this, we choose a number of features, then create a noisy vector of that size and
@@ -70,7 +71,7 @@ Tensor = torch.cuda.FloatTensor if cuda else torch.FloatTensor
 
 n_train_samples = None if not opt.n_samples else int(opt.n_samples * 0.8)
 n_val_samples = None if not opt.n_samples else int(opt.n_samples * 0.1)
-train_set = RNADatasetSingleFile('../../data/sequences_with_folding_train.pkl', seq_max_len=10,
+train_set = RNADatasetSingleFile('../data/sequences_with_folding_train.pkl', seq_max_len=10,
                                  seq_min_len=10, graph=False, n_samples=n_train_samples)
 # test_set = RNADatasetSingleFile('../../data/sequences_with_folding_test.pkl',
 #                                 seq_max_len=opt.seq_max_len, graph=False, n_samples=n_val_samples)
@@ -100,14 +101,17 @@ for epoch in range(opt.n_epochs):
 
         # For RNN Model
         targets, _ = prepare_sequences([seq], word_to_ix)
+        targets.to(device)
         sequences, sequences_lengths = prepare_sequences([dot_bracket], tag_to_ix)
+        sequences.to(device)
+        sequences_lengths.to(device)
 
         g = dotbracket_to_graph(dot_bracket)
         sample_y = nx.adjacency_matrix(g, nodelist=sorted(list(g.nodes())))
-        adj = sparse_mx_to_torch_sparse_tensor(sample_y)
+        adj = sparse_mx_to_torch_sparse_tensor(sample_y).to(device)
 
-        x = one_hot_embed_sequence(seq, word_to_ix)
-        hot_embedded_dot_bracket = one_hot_embed_sequence(dot_bracket, tag_to_ix)
+        x = one_hot_embed_sequence(seq, word_to_ix).to(device)
+        hot_embedded_dot_bracket = one_hot_embed_sequence(dot_bracket, tag_to_ix).to(device)
 
         # Adversarial ground truths
         valid = Variable(Tensor(1).fill_(1.0), requires_grad=False)
