@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from data_util.data_constants import word_to_ix
+from src.data_util.data_constants import word_to_ix
 
 torch.manual_seed(1)
 
@@ -31,16 +31,21 @@ class LSTMModel(nn.Module):
         self.device = device
         self.hidden = self.init_hidden()
 
-    def init_hidden(self):
+    def init_hidden(self, initial_hidden=None):
+        if initial_hidden is None:
+            initial_hidden = torch.zeros(self.hidden_dim).to(self.device)
         # Before we've done anything, we dont have any hidden state.
         # Refer to the Pytorch documentation to see exactly
         # why they have this dimensionality.
         # The axes semantics are (num_layers * num_directions, minibatch_size, hidden_dim)
-        return (torch.zeros(self.num_layers * self.num_directions, self.batch_size, self.hidden_dim).to(self.device),
+        return (initial_hidden.repeat(self.num_layers * self.num_directions, self.batch_size,
+                                      1).to(self.device),
                 torch.zeros(self.num_layers * self.num_directions, self.batch_size, self.hidden_dim).to(self.device))
+        # return (torch.zeros(self.num_layers * self.num_directions, self.batch_size, self.hidden_dim).to(self.device),
+        #         torch.zeros(self.num_layers * self.num_directions, self.batch_size, self.hidden_dim).to(self.device))
 
-    def forward(self, sentence, sentence_lenghts):
-        self.hidden = self.init_hidden()
+    def forward(self, sentence, sentence_lenghts, initial_hidden=None):
+        self.hidden = self.init_hidden(initial_hidden)
         # sentence has shape (batch_size, seq_length)
         # embeds has shape (batch_size, seq_length, embedding_dim)
         embeds = self.word_embeddings(sentence)
