@@ -44,9 +44,16 @@ def prepare_sequences(seqs, to_ix):
                                                           dtype=torch.long)
 
 
-def my_collate(batch):
+def my_collate_seq_to_struct(batch):
     sequences, sequences_lengths = prepare_sequences([item[0] for item in batch], word_to_ix)
     targets, _ = prepare_sequences([item[1] for item in batch], tag_to_ix)
+
+    return [sequences, targets, sequences_lengths]
+
+
+def my_collate_struct_to_seq(batch):
+    sequences, sequences_lengths = prepare_sequences([item[1] for item in batch], tag_to_ix)
+    targets, _ = prepare_sequences([item[0] for item in batch], word_to_ix)
 
     return [sequences, targets, sequences_lengths]
 
