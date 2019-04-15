@@ -1,4 +1,8 @@
-from data_util.data_processing import prepare_sequence, my_collate
+import os
+import sys
+sys.path.append(os.getcwd().split('src')[0])
+
+from data_util.data_processing import prepare_sequence, my_collate_seq_to_struct
 from lstm.lstm_model import LSTMModel
 import torch
 import torch.nn as nn
@@ -28,7 +32,7 @@ parser.add_argument('--learning_rate', type=float, default=0.001, help='Learning
 parser.add_argument('--seq_max_len', type=int, default=100, help='Maximum length of sequences '
                                                                  'used for training and testing')
 parser.add_argument('--lstm_layers', type=int, default=2, help='Number of layers of the lstm')
-parser.add_argument('--dropout', type=float, default=2, help='Amount of dropout')
+parser.add_argument('--dropout', type=float, default=0, help='Amount of dropout')
 
 opt = parser.parse_args()
 print(opt)
@@ -60,11 +64,11 @@ val_set = RNADatasetSingleFile('../data/sequences_with_folding_val.pkl',
                                seq_max_len=opt.seq_max_len, n_samples=n_val_samples)
 
 train_loader = torch.utils.data.DataLoader(train_set, batch_size=opt.batch_size, shuffle=True,
-                                           collate_fn=my_collate)
+                                           collate_fn=my_collate_seq_to_struct)
 test_loader = torch.utils.data.DataLoader(test_set, batch_size=opt.batch_size, shuffle=False,
-                                          collate_fn=my_collate)
+                                          collate_fn=my_collate_seq_to_struct)
 val_loader = torch.utils.data.DataLoader(val_set, batch_size=opt.batch_size, shuffle=False,
-                                          collate_fn=my_collate)
+                                         collate_fn=my_collate_seq_to_struct)
 
 
 def train_epoch(model, train_loader):
