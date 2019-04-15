@@ -58,15 +58,15 @@ n_train_samples = None if not opt.n_samples else int(opt.n_samples * 0.8)
 n_val_samples = None if not opt.n_samples else int(opt.n_samples * 0.1)
 train_set = RNADatasetSingleFile('../data/sequences_with_folding_train.pkl',
                                  seq_max_len=opt.seq_max_len, n_samples=n_train_samples)
-test_set = RNADatasetSingleFile('../data/sequences_with_folding_test.pkl',
-                                seq_max_len=opt.seq_max_len, n_samples=n_val_samples)
+# test_set = RNADatasetSingleFile('../data/sequences_with_folding_test.pkl',
+#                                 seq_max_len=opt.seq_max_len, n_samples=n_val_samples)
 val_set = RNADatasetSingleFile('../data/sequences_with_folding_val.pkl',
                                seq_max_len=opt.seq_max_len, n_samples=n_val_samples)
 
 train_loader = torch.utils.data.DataLoader(train_set, batch_size=opt.batch_size, shuffle=True,
                                            collate_fn=my_collate_struct_to_seq)
-test_loader = torch.utils.data.DataLoader(test_set, batch_size=opt.batch_size, shuffle=False,
-                                          collate_fn=my_collate_struct_to_seq)
+# test_loader = torch.utils.data.DataLoader(test_set, batch_size=opt.batch_size, shuffle=False,
+#                                           collate_fn=my_collate_struct_to_seq)
 val_loader = torch.utils.data.DataLoader(val_set, batch_size=opt.batch_size, shuffle=False,
                                          collate_fn=my_collate_struct_to_seq)
 
@@ -110,7 +110,7 @@ def train_epoch(model, train_loader):
     return avg_loss.item(), h_loss, accuracy
 
 
-def run(model, n_epochs, train_loader, test_loader, results_dir, model_dir):
+def run(model, n_epochs, train_loader, results_dir, model_dir):
     print("The model contains {} parameters".format(sum(p.numel() for p in model.parameters() if p.requires_grad)))
     train_losses = []
     # test_losses = []
@@ -176,7 +176,7 @@ def main():
     with open(results_dir + 'hyperparams.txt', 'w') as f:
         f.write(str(opt))
 
-    run(model, opt.n_epochs, train_loader, test_loader, results_dir, model_dir)
+    run(model, opt.n_epochs, train_loader, results_dir, model_dir)
 
 
 if __name__ == "__main__":
