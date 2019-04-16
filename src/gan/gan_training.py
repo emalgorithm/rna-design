@@ -76,7 +76,7 @@ Tensor = torch.cuda.FloatTensor if cuda else torch.FloatTensor
 n_train_samples = None if not opt.n_samples else int(opt.n_samples * 0.8)
 n_val_samples = None if not opt.n_samples else int(opt.n_samples * 0.1)
 train_set = RNADatasetSingleFile('../data/sequences_with_folding_train.pkl',
-                                 seq_max_len=opt.max_seq_len, seq_min_len=opt.min_seq_len,
+                                 seq_max_len=opt.seq_max_len, seq_min_len=opt.seq_min_len,
                                  graph=False, n_samples=n_train_samples)
 # test_set = RNADatasetSingleFile('../../data/sequences_with_folding_test.pkl',
 #                                 seq_max_len=opt.seq_max_len, graph=False, n_samples=n_val_samples)
