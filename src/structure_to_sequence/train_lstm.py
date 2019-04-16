@@ -12,7 +12,7 @@ from src.data_util.rna_dataset_single_file import RNADatasetSingleFile
 from torchvision import transforms
 from src.visualization_util import plot_loss
 from src.data_util.data_constants import word_to_ix, tag_to_ix
-from src.evaluation import masked_hamming_loss, compute_accuracy, evaluate
+from src.evaluation import masked_hamming_loss, compute_accuracy, evaluate, evaluate_struct_to_seq
 import pickle
 import os
 import time
@@ -33,6 +33,12 @@ parser.add_argument('--seq_max_len', type=int, default=100, help='Maximum length
                                                                  'used for training and testing')
 parser.add_argument('--lstm_layers', type=int, default=2, help='Number of layers of the lstm')
 parser.add_argument('--dropout', type=float, default=0, help='Amount of dropout')
+parser.add_argument('--train_dataset', type=str,
+                    default='../data/sequences_with_folding_train.pkl', help='Path to training dataset')
+parser.add_argument('--val_dataset', type=str,
+                    default='../data/sequences_with_folding_val.pkl', help='Path to val dataset')
+parser.add_argument('--test_dataset', type=str,
+                    default='../data/sequences_with_folding_test.pkl', help='Path to test dataset')
 
 opt = parser.parse_args()
 print(opt)
@@ -56,11 +62,11 @@ y_transform = transforms.Lambda(lambda sequences: prepare_sequence(sequences, wo
 # val_set = RNADataset('../data/less_than_450/val/')
 n_train_samples = None if not opt.n_samples else int(opt.n_samples * 0.8)
 n_val_samples = None if not opt.n_samples else int(opt.n_samples * 0.1)
-train_set = RNADatasetSingleFile('../data/sequences_with_folding_train.pkl',
-                                 seq_max_len=opt.seq_max_len, n_samples=n_train_samples)
-# test_set = RNADatasetSingleFile('../data/sequences_with_folding_test.pkl',
+train_set = RNADatasetSingleFile(opt.train_dataset, seq_max_len=opt.seq_max_len,
+                                 n_samples=n_train_samples)
+# test_set = RNADatasetSingleFile(opt.test_dataset,
 #                                 seq_max_len=opt.seq_max_len, n_samples=n_val_samples)
-val_set = RNADatasetSingleFile('../data/sequences_with_folding_val.pkl',
+val_set = RNADatasetSingleFile(opt.val_dataset,
                                seq_max_len=opt.seq_max_len, n_samples=n_val_samples)
 
 train_loader = torch.utils.data.DataLoader(train_set, batch_size=opt.batch_size, shuffle=True,
@@ -129,7 +135,7 @@ def run(model, n_epochs, train_loader, results_dir, model_dir):
         loss, h_loss, accuracy = train_epoch(model, train_loader)
         # test_loss, test_h_loss, test_accuracy = evaluate(model, test_loader, loss_function,
         #                                                  batch_size, mode='test', device=opt.device)
-        val_loss, val_h_loss, val_accuracy = evaluate(model, val_loader, loss_function,
+        val_loss, val_h_loss, val_accuracy = evaluate_struct_to_seq(model, val_loader, loss_function,
                                                       opt.batch_size, mode='val', device=opt.device)
         end = time.time()
         print("Epoch took {0:.2f} seconds".format(end - start))
@@ -175,6 +181,9 @@ def main():
 
     with open(results_dir + 'hyperparams.txt', 'w') as f:
         f.write(str(opt))
+
+    with open(results_dir + 'hyperparams.pkl', 'wb') as f:
+        pickle.dump(opt, f)
 
     run(model, opt.n_epochs, train_loader, results_dir, model_dir)
 
