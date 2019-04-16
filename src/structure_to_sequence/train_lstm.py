@@ -31,6 +31,8 @@ parser.add_argument('--batch_size', type=int, default=64, help='Batch size')
 parser.add_argument('--learning_rate', type=float, default=0.001, help='Learning rate')
 parser.add_argument('--seq_max_len', type=int, default=100, help='Maximum length of sequences '
                                                                  'used for training and testing')
+parser.add_argument('--seq_min_len', type=int, default=1, help='Maximum length of sequences '
+                                                                 'used for training and testing')
 parser.add_argument('--lstm_layers', type=int, default=2, help='Number of layers of the lstm')
 parser.add_argument('--dropout', type=float, default=0, help='Amount of dropout')
 parser.add_argument('--train_dataset', type=str,
@@ -63,11 +65,14 @@ y_transform = transforms.Lambda(lambda sequences: prepare_sequence(sequences, wo
 n_train_samples = None if not opt.n_samples else int(opt.n_samples * 0.8)
 n_val_samples = None if not opt.n_samples else int(opt.n_samples * 0.1)
 train_set = RNADatasetSingleFile(opt.train_dataset, seq_max_len=opt.seq_max_len,
+                                 seq_min_len=opt.seq_min_len,
                                  n_samples=n_train_samples)
 # test_set = RNADatasetSingleFile(opt.test_dataset,
-#                                 seq_max_len=opt.seq_max_len, n_samples=n_val_samples)
+#                                 seq_max_len=opt.seq_max_len, seq_min_len=opt.seq_min_len,
+#                                 n_samples=n_val_samples)
 val_set = RNADatasetSingleFile(opt.val_dataset,
-                               seq_max_len=opt.seq_max_len, n_samples=n_val_samples)
+                               seq_max_len=opt.seq_max_len, seq_min_len=opt.seq_min_len,
+                               n_samples=n_val_samples)
 
 train_loader = torch.utils.data.DataLoader(train_set, batch_size=opt.batch_size, shuffle=True,
                                            collate_fn=my_collate_struct_to_seq)
