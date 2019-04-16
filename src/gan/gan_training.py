@@ -37,8 +37,8 @@ parser.add_argument("--img_size", type=int, default=28, help="size of each image
 parser.add_argument("--channels", type=int, default=1, help="number of image channels")
 parser.add_argument("--sample_interval", type=int, default=400, help="interval betwen image samples")
 parser.add_argument('--n_samples', type=int, default=None, help='Number of samples to train on')
-parser.add_argument('--max_seq_len', type=int, default=100, help='Max len of sequences used')
-parser.add_argument('--min_seq_len', type=int, default=2, help='Min len of sequences used')
+parser.add_argument('--seq_max_len', type=int, default=100, help='Max len of sequences used')
+parser.add_argument('--seq_min_len', type=int, default=2, help='Min len of sequences used')
 opt = parser.parse_args()
 print(opt)
 
