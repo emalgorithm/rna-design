@@ -86,11 +86,9 @@ def evaluate_struct_to_seq(model, test_loader, loss_function, batch_size, mode='
                                                                                        pred_sequence in enumerate(pred_sequences)]
 
             loss += loss_function(base_scores, sequences.view(-1))
-            h_losses = np.array([hamming_loss(list(dot_brackets_strings[i]),
+            h_loss += np.mean([hamming_loss(list(dot_brackets_strings[i]),
                           list(pred_dot_brackets[i])) for i in range(len(
                 pred_dot_brackets))])
-            mask = [')' in dot_bracket for dot_bracket in dot_brackets_strings]
-            h_loss += np.mean(h_losses[mask])
             # accuracy += compute_accuracy(dot_brackets.view(-1).cpu().numpy(), pred_dot_bracket)
 
             for i in range(len(dot_brackets_strings)):

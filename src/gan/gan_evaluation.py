@@ -52,9 +52,13 @@ def evaluate_gan(generator, data_loader, n_features, device):
         # TODO: Compute accuracy and hamming loss to closest in top 10 foldings
         matches.append(pred_dot_bracket == dot_bracket)
         if len(dot_bracket) != len(pred_dot_bracket):
-            hamming_dists.append(0.5)
+            hamming_dists.append(1)
         else:
             hamming_dists.append(hamming_loss(list(dot_bracket), list(pred_dot_bracket)))
+
+        print("REAL: {}".format(dot_bracket))
+        print("PRED: {}".format(pred_dot_bracket))
+        print()
 
     print("Accuracy: {0:.2f}".format(np.mean(matches)))
     print("Hamming loss: {0:.2f}".format(np.mean(hamming_dists)))
