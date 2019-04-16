@@ -1,6 +1,9 @@
 from sklearn.metrics import hamming_loss
 import numpy as np
 import torch
+import RNA
+from src.data_util.data_processing import one_hot_embed_sequence, prepare_sequences, decode_sequence
+from src.data_util.data_constants import word_to_ix, tag_to_ix, ix_to_word, ix_to_tag
 
 
 def masked_hamming_loss(target, pred, ignore_idx=0):
@@ -49,4 +52,58 @@ def evaluate(model, test_loader, loss_function, batch_size, mode='test', device=
         print("{} hamming loss: {}".format(mode, h_loss))
         print("{} accuracy: {}".format(mode, accuracy))
 
-        return loss.item(), h_loss, accuracy
+        return loss, h_loss, accuracy
+
+
+def evaluate_struct_to_seq(model, test_loader, loss_function, batch_size, mode='test',
+                           device='cpu'):
+    model.eval()
+    with torch.no_grad():
+        loss = 0
+        h_loss = 0
+        accuracy = 0
+
+        for batch_idx, (dot_brackets, sequences, sequences_lengths) in enumerate(test_loader):
+            dot_brackets_strings = [decode_sequence(dot_bracket.cpu().numpy()[:sequences_lengths[
+                i]], ix_to_tag) for i, dot_bracket in enumerate(dot_brackets)]
+            dot_brackets = dot_brackets.to(device)
+            sequences = sequences.to(device)
+            sequences_lengths = sequences_lengths.to(device)
+
+            # Skip last batch if it does not have full size
+            if dot_brackets.shape[0] < batch_size:
+                continue
+
+            base_scores = model(dot_brackets, sequences_lengths)
+
+            # Reshape base_scores so that the different sequences are separated
+
+            pred = base_scores.max(1)[1]
+            # Split different sequences
+            preds = pred.view(-1, max(sequences_lengths)).cpu().numpy()
+            pred_sequences = [decode_sequence(pred, ix_to_word) for pred in preds]
+            pred_dot_brackets = [RNA.fold(pred_sequence[:sequences_lengths[i]])[0] for i,
+                                                                                       pred_sequence in enumerate(pred_sequences)]
+
+            loss += loss_function(base_scores, sequences.view(-1))
+            h_losses = np.array([hamming_loss(list(dot_brackets_strings[i]),
+                          list(pred_dot_brackets[i])) for i in range(len(
+                pred_dot_brackets))])
+            mask = [')' in dot_bracket for dot_bracket in dot_brackets_strings]
+            h_loss += np.mean(h_losses[mask])
+            # accuracy += compute_accuracy(dot_brackets.view(-1).cpu().numpy(), pred_dot_bracket)
+
+            for i in range(len(dot_brackets_strings)):
+                print("REAL: {}".format(dot_brackets_strings[i]))
+                print("PRED: {}".format(pred_dot_brackets[i]))
+                print()
+
+        loss /= len(test_loader)
+        h_loss /= len(test_loader)
+        accuracy /= len(test_loader)
+
+        print("{} loss: {}".format(mode, loss))
+        print("{} hamming loss: {}".format(mode, h_loss))
+        print("{} accuracy: {}".format(mode, accuracy))
+
+        return loss, h_loss, accuracy
