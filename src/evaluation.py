@@ -105,7 +105,7 @@ def evaluate_struct_to_seq(model, test_loader, loss_function, batch_size, mode='
             base_scores = model(dot_brackets, sequences_lengths)
 
             losses.append(loss_function(base_scores.view(-1, base_scores.shape[2]),
-                                        dot_brackets.view(-1)))
+                                        dot_brackets.view(-1)).item())
             avg_h_loss, avg_accuracy = compute_metrics(target_dot_brackets=dot_brackets,
                                                        input_sequences=sequences,
                                                        pred_sequences_scores=base_scores,
