@@ -20,12 +20,42 @@ def compute_accuracy(target, pred, ignore_idx=0):
     return accuracy / len(pred)
 
 
+def compute_metrics(target_dot_brackets, input_sequences, pred_sequences_scores, sequences_lengths,
+                    verbose=False):
+    dot_brackets_strings = [decode_sequence(dot_bracket.cpu().numpy()[:sequences_lengths[
+        i]], ix_to_tag) for i, dot_bracket in enumerate(target_dot_brackets)]
+    sequences_strings = [decode_sequence(sequence.cpu().numpy()[:sequences_lengths[
+        i]], ix_to_word) for i, sequence in enumerate(input_sequences)]
+
+    pred_sequences_np = pred_sequences_scores.max(2)[1].cpu().numpy()
+    pred_sequences_strings = [decode_sequence(pred[:sequences_lengths[i]], ix_to_word) for i,
+                                                          pred in enumerate(pred_sequences_np)]
+    pred_dot_brackets_strings = [RNA.fold(pred_sequences_strings[i])[0] for
+                                 i, pred_sequence in enumerate(pred_sequences_strings)]
+
+    h_loss = np.mean([hamming_loss(list(dot_brackets_strings[i]),
+                                   list(pred_dot_brackets_strings[i])) for i in range(len(
+        pred_dot_brackets_strings))])
+    accuracy = np.mean([1 if (dot_brackets_strings[i] == pred_dot_brackets_strings[i]) else 0 for i
+                       in range(len(pred_dot_brackets_strings))])
+
+    if verbose:
+        for i in range(len(dot_brackets_strings)):
+            print("REAL SEQUENCE: {}".format(sequences_strings[i]))
+            print("PRED SEQUENCE: {}".format(pred_sequences_strings[i]))
+            print("REAL: {}".format(dot_brackets_strings[i]))
+            print("PRED: {}".format(pred_dot_brackets_strings[i]))
+            print()
+
+    return h_loss, accuracy
+
+
 def evaluate(model, test_loader, loss_function, batch_size, mode='test', device='cpu'):
     model.eval()
     with torch.no_grad():
         loss = 0
-        h_loss = 0
-        accuracy = 0
+        avg_h_loss = 0
+        avg_accuracy = 0
 
         for batch_idx, (sequences, dot_brackets, sequences_lengths) in enumerate(test_loader):
             sequences = sequences.to(device)
@@ -38,21 +68,20 @@ def evaluate(model, test_loader, loss_function, batch_size, mode='test', device=
 
             base_scores = model(sequences, sequences_lengths)
 
-            loss += loss_function(base_scores, dot_brackets.view(-1))
-            pred = base_scores.max(1)[1]
-            h_loss += masked_hamming_loss(dot_brackets.view(-1).cpu().numpy(), pred.cpu().numpy())
-            accuracy += compute_accuracy(dot_brackets.cpu().numpy(), pred.view_as(
-                dot_brackets).cpu().numpy())
+            loss += loss_function(base_scores.view(-1, base_scores.shape[2]), dot_brackets.view(-1))
+            avg_h_loss, avg_accuracy = compute_metrics(base_scores, dot_brackets)
+            avg_h_loss += avg_h_loss
+            avg_accuracy += avg_accuracy
 
         loss /= len(test_loader)
-        h_loss /= len(test_loader)
-        accuracy /= len(test_loader)
+        avg_h_loss /= len(test_loader)
+        avg_accuracy /= len(test_loader)
 
         print("{} loss: {}".format(mode, loss))
-        print("{} hamming loss: {}".format(mode, h_loss))
-        print("{} accuracy: {}".format(mode, accuracy))
+        print("{} hamming loss: {}".format(mode, avg_h_loss))
+        print("{} accuracy: {}".format(mode, avg_accuracy))
 
-        return loss, h_loss, accuracy
+        return loss, avg_h_loss, avg_accuracy
 
 
 def evaluate_struct_to_seq(model, test_loader, loss_function, batch_size, mode='test',
@@ -60,15 +89,10 @@ def evaluate_struct_to_seq(model, test_loader, loss_function, batch_size, mode='
     model.eval()
     with torch.no_grad():
         loss = 0
-        h_loss = 0
-        accuracy = 0
+        avg_h_loss = 0
+        avg_accuracy = 0
 
         for batch_idx, (dot_brackets, sequences, sequences_lengths) in enumerate(test_loader):
-            dot_brackets_strings = [decode_sequence(dot_bracket.cpu().numpy()[:sequences_lengths[
-                i]], ix_to_tag) for i, dot_bracket in enumerate(dot_brackets)]
-            sequences_strings = [decode_sequence(sequence.cpu().numpy()[:sequences_lengths[
-                i]], ix_to_word) for i, sequence in enumerate(sequences)]
-
             dot_brackets = dot_brackets.to(device)
             sequences = sequences.to(device)
             sequences_lengths = sequences_lengths.to(device)
@@ -79,35 +103,21 @@ def evaluate_struct_to_seq(model, test_loader, loss_function, batch_size, mode='
 
             base_scores = model(dot_brackets, sequences_lengths)
 
-            # Reshape base_scores so that the different sequences are separated
-
-            pred = base_scores.max(1)[1]
-            # Split different sequences
-            preds = pred.view(-1, max(sequences_lengths)).cpu().numpy()
-            pred_sequences = [decode_sequence(pred, ix_to_word) for pred in preds]
-            pred_dot_brackets = [RNA.fold(pred_sequence[:sequences_lengths[i]])[0] for i,
-                                                                                       pred_sequence in enumerate(pred_sequences)]
-
-            loss += loss_function(base_scores, sequences.view(-1))
-            h_loss += np.mean([hamming_loss(list(dot_brackets_strings[i]),
-                          list(pred_dot_brackets[i])) for i in range(len(
-                pred_dot_brackets))])
-            accuracy += np.mean([pred_dot_bracket == dot_brackets_strings[i] for i,
-                                 pred_dot_bracket in enumerate(pred_dot_brackets)])
-
-            # for i in range(len(dot_brackets_strings)):
-            #     print("REAL SEQUENCE: {}".format(sequences_strings[i][:sequences_lengths[i]]))
-            #     print("PRED SEQUENCE: {}".format(pred_sequences[i][:sequences_lengths[i]]))
-            #     print("REAL: {}".format(dot_brackets_strings[i]))
-            #     print("PRED: {}".format(pred_dot_brackets[i]))
-            #     print()
+            loss += loss_function(base_scores.view(-1, base_scores.shape[2]), dot_brackets.view(-1))
+            avg_h_loss, avg_accuracy = compute_metrics(target_dot_brackets=dot_brackets,
+                                                       input_sequences=sequences,
+                                                       pred_sequences_scores=base_scores,
+                                                       sequences_lengths=sequences_lengths,
+                                                       verbose=True)
+            avg_h_loss += avg_h_loss
+            avg_accuracy += avg_accuracy
 
         loss /= len(test_loader)
-        h_loss /= len(test_loader)
-        accuracy /= len(test_loader)
+        avg_h_loss /= len(test_loader)
+        avg_accuracy /= len(test_loader)
 
         print("{} loss: {}".format(mode, loss))
-        print("{} hamming loss: {}".format(mode, h_loss))
-        print("{} accuracy: {}".format(mode, accuracy))
+        print("{} hamming loss: {}".format(mode, avg_h_loss))
+        print("{} accuracy: {}".format(mode, avg_accuracy))
 
-        return loss, h_loss, accuracy
+        return loss, avg_h_loss, avg_accuracy

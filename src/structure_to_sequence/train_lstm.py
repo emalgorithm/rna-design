@@ -12,7 +12,8 @@ from src.data_util.rna_dataset_single_file import RNADatasetSingleFile
 from torchvision import transforms
 from src.visualization_util import plot_loss
 from src.data_util.data_constants import word_to_ix, tag_to_ix
-from src.evaluation import masked_hamming_loss, compute_accuracy, evaluate, evaluate_struct_to_seq
+from src.evaluation import masked_hamming_loss, compute_accuracy, evaluate, \
+    evaluate_struct_to_seq, compute_metrics
 import pickle
 import os
 import time
@@ -87,40 +88,45 @@ val_loader = torch.utils.data.DataLoader(val_set, batch_size=opt.batch_size, shu
 def train_epoch(model, train_loader):
     model.train()
     avg_loss = 0
-    h_loss = 0
-    accuracy = 0
+    avg_h_loss = 0
+    avg_accuracy = 0
 
-    for batch_idx, (sequences, dot_brackets, sequences_lengths) in enumerate(train_loader):
-        sequences = sequences.to(opt.device)
+    for batch_idx, (dot_brackets, sequences, sequences_lengths) in enumerate(train_loader):
         dot_brackets = dot_brackets.to(opt.device)
+        sequences = sequences.to(opt.device)
         sequences_lengths = sequences_lengths.to(opt.device)
 
         # Skip last batch if it does not have full size
-        if sequences.shape[0] < opt.batch_size:
+        if dot_brackets.shape[0] < opt.batch_size:
             continue
         model.zero_grad()
 
-        base_scores = model(sequences, sequences_lengths)
+        pred_sequences_scores = model(dot_brackets, sequences_lengths)
 
-        loss = loss_function(base_scores, dot_brackets.view(-1))
+        # Loss is computed with respect to the target sequence
+        loss = loss_function(pred_sequences_scores.view(-1, pred_sequences_scores.shape[2]), sequences.view(-1))
         avg_loss += loss
         loss.backward()
         optimizer.step()
 
-        pred = base_scores.max(1)[1]
-        h_loss += masked_hamming_loss(dot_brackets.view(-1).cpu().numpy(), pred.cpu().numpy())
-        accuracy += compute_accuracy(dot_brackets.cpu().numpy(), pred.view_as(
-            dot_brackets).cpu().numpy())
+        # Metrics are computed with respect to generated folding
+        avg_h_loss, avg_accuracy = compute_metrics(target_dot_brackets=dot_brackets,
+                                                   input_sequences=sequences,
+                                                   pred_sequences_scores=pred_sequences_scores,
+                                                   sequences_lengths=sequences_lengths,
+                                                   verbose=True)
+        avg_h_loss += avg_h_loss
+        avg_accuracy += avg_accuracy
 
     avg_loss /= len(train_loader)
-    h_loss /= len(train_loader)
-    accuracy /= len(train_loader)
+    avg_h_loss /= len(train_loader)
+    avg_accuracy /= len(train_loader)
 
     print("training loss is {}".format(avg_loss))
-    print("training hamming loss: {}".format(h_loss))
-    print("accuracy: {}".format(accuracy))
+    print("training hamming loss: {}".format(avg_h_loss))
+    print("accuracy: {}".format(avg_accuracy))
 
-    return avg_loss.item(), h_loss, accuracy
+    return avg_loss.item(), avg_h_loss, avg_accuracy
 
 
 def run(model, n_epochs, train_loader, results_dir, model_dir):
@@ -148,8 +154,8 @@ def run(model, n_epochs, train_loader, results_dir, model_dir):
         print("Epoch {}: ".format(epoch + 1))
 
         loss, h_loss, accuracy = train_epoch(model, train_loader)
-        # a, b, c = evaluate_struct_to_seq(model, train_loader, loss_function, opt.batch_size, mode='test',
-        #                    device=opt.device)
+        a, b, c = evaluate_struct_to_seq(model, train_loader, loss_function, opt.batch_size, mode='test',
+                           device=opt.device)
         # test_loss, test_h_loss, test_accuracy = evaluate_struct_to_seq(model, test_loader, loss_function,
         #                                                  batch_size, mode='test', device=opt.device)
         val_loss, val_h_loss, val_accuracy = evaluate_struct_to_seq(model, val_loader, loss_function,

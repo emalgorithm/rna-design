@@ -62,10 +62,11 @@ class LSTMModel(nn.Module):
         # Flatten lstm_out to shape (seq_length * batch_size, hidden_dim) and apply linear layer to
         # all the output representation of the basis
         # base_space has shape (seq_length * batch_size, output_size)
-        out = lstm_out.contiguous().view(-1, lstm_out.size(2))
+        # out = lstm_out.contiguous().view(-1, lstm_out.size(2))
+        out = lstm_out
         out = self.nn_dropout(out)
         base_space = self.hidden2base(out)
 
         # base_scores has shape (seq_length * batch_size, output_size)
-        base_scores = F.log_softmax(base_space, dim=1)
+        base_scores = F.log_softmax(base_space, dim=2)
         return base_scores
