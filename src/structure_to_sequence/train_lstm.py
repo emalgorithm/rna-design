@@ -38,6 +38,7 @@ parser.add_argument('--seq_min_len', type=int, default=1, help='Maximum length o
                                                                  'used for training and testing')
 parser.add_argument('--lstm_layers', type=int, default=2, help='Number of layers of the lstm')
 parser.add_argument('--dropout', type=float, default=0, help='Amount of dropout')
+parser.add_argument('--verbose', type=bool, default=False, help='Verbosity')
 parser.add_argument('--train_dataset', type=str,
                     default='../data/sequences_with_folding_train.pkl', help='Path to training dataset')
 parser.add_argument('--val_dataset', type=str,
@@ -114,7 +115,7 @@ def train_epoch(model, train_loader):
                                                    input_sequences=sequences,
                                                    pred_sequences_scores=pred_sequences_scores,
                                                    sequences_lengths=sequences_lengths,
-                                                   verbose=True)
+                                                   verbose=opt.verbose)
         avg_h_loss += avg_h_loss
         avg_accuracy += avg_accuracy
 
@@ -134,10 +135,10 @@ def run(model, n_epochs, train_loader, results_dir, model_dir):
 
     loss, h_loss, accuracy = evaluate_struct_to_seq(model, train_loader, loss_function,
                                                     opt.batch_size, mode='train',
-                                                    device=opt.device)
+                                                    device=opt.device, verbose=opt.verbose)
     val_loss, val_h_loss, val_accuracy = evaluate_struct_to_seq(model, val_loader, loss_function,
                                                                 opt.batch_size, mode='val',
-                                                                device=opt.device)
+                                                                device=opt.device, verbose=opt.verbose)
 
     train_losses = [loss]
     # test_losses = []
@@ -154,12 +155,11 @@ def run(model, n_epochs, train_loader, results_dir, model_dir):
         print("Epoch {}: ".format(epoch + 1))
 
         loss, h_loss, accuracy = train_epoch(model, train_loader)
-        a, b, c = evaluate_struct_to_seq(model, train_loader, loss_function, opt.batch_size, mode='test',
-                           device=opt.device)
         # test_loss, test_h_loss, test_accuracy = evaluate_struct_to_seq(model, test_loader, loss_function,
         #                                                  batch_size, mode='test', device=opt.device)
         val_loss, val_h_loss, val_accuracy = evaluate_struct_to_seq(model, val_loader, loss_function,
-                                                      opt.batch_size, mode='val', device=opt.device)
+                                                      opt.batch_size, mode='val',
+                                                                    device=opt.device, verbose=opt.verbose)
         end = time.time()
         print("Epoch took {0:.2f} seconds".format(end - start))
 

@@ -85,7 +85,7 @@ def evaluate(model, test_loader, loss_function, batch_size, mode='test', device=
 
 
 def evaluate_struct_to_seq(model, test_loader, loss_function, batch_size, mode='test',
-                           device='cpu'):
+                           device='cpu', verbose=False):
     model.eval()
     with torch.no_grad():
         loss = 0
@@ -108,7 +108,7 @@ def evaluate_struct_to_seq(model, test_loader, loss_function, batch_size, mode='
                                                        input_sequences=sequences,
                                                        pred_sequences_scores=base_scores,
                                                        sequences_lengths=sequences_lengths,
-                                                       verbose=True)
+                                                       verbose=verbose)
             avg_h_loss += avg_h_loss
             avg_accuracy += avg_accuracy
 
