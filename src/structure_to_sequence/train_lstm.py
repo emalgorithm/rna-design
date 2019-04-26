@@ -18,17 +18,19 @@ import os
 import time
 import argparse
 
+torch.manual_seed(0)
+
 parser = argparse.ArgumentParser()
 parser.add_argument('--model_name', default="test10", help='model name')
 parser.add_argument('--device', default="cpu", help='cpu or cuda')
 parser.add_argument('--n_samples', type=int, default=None, help='Number of samples to train on')
-parser.add_argument('--n_epochs', type=int, default=100, help='Number of samples to train on')
+parser.add_argument('--n_epochs', type=int, default=10000, help='Number of samples to train on')
 parser.add_argument('--hidden_dim', type=int, default=128, help='Dimension of hidden '
                                                                 'representations of LSTM')
 parser.add_argument('--embedding_dim', type=int, default=6, help='Dimension of embedding for '
                                                                    'the bases')
 parser.add_argument('--batch_size', type=int, default=64, help='Batch size')
-parser.add_argument('--learning_rate', type=float, default=0.001, help='Learning rate')
+parser.add_argument('--learning_rate', type=float, default=0.0004, help='Learning rate')
 parser.add_argument('--seq_max_len', type=int, default=100, help='Maximum length of sequences '
                                                                  'used for training and testing')
 parser.add_argument('--seq_min_len', type=int, default=1, help='Maximum length of sequences '
@@ -123,31 +125,41 @@ def train_epoch(model, train_loader):
 
 def run(model, n_epochs, train_loader, results_dir, model_dir):
     print("The model contains {} parameters".format(sum(p.numel() for p in model.parameters() if p.requires_grad)))
-    train_losses = []
+
+    loss, h_loss, accuracy = evaluate_struct_to_seq(model, train_loader, loss_function,
+                                                    opt.batch_size, mode='train',
+                                                    device=opt.device)
+    val_loss, val_h_loss, val_accuracy = evaluate_struct_to_seq(model, val_loader, loss_function,
+                                                                opt.batch_size, mode='val',
+                                                                device=opt.device)
+
+    train_losses = [loss]
     # test_losses = []
-    val_losses = []
-    train_h_losses = []
+    val_losses = [val_loss]
+    train_h_losses = [h_loss]
     # test_h_losses = []
-    val_h_losses = []
-    train_accuracies = []
+    val_h_losses = [val_h_loss]
+    train_accuracies = [accuracy]
     # test_accuracies = []
-    val_accuracies = []
+    val_accuracies = [val_accuracy]
 
     for epoch in range(n_epochs):
         start = time.time()
         print("Epoch {}: ".format(epoch + 1))
 
         loss, h_loss, accuracy = train_epoch(model, train_loader)
-        # test_loss, test_h_loss, test_accuracy = evaluate(model, test_loader, loss_function,
+        # a, b, c = evaluate_struct_to_seq(model, train_loader, loss_function, opt.batch_size, mode='test',
+        #                    device=opt.device)
+        # test_loss, test_h_loss, test_accuracy = evaluate_struct_to_seq(model, test_loader, loss_function,
         #                                                  batch_size, mode='test', device=opt.device)
         val_loss, val_h_loss, val_accuracy = evaluate_struct_to_seq(model, val_loader, loss_function,
                                                       opt.batch_size, mode='val', device=opt.device)
         end = time.time()
         print("Epoch took {0:.2f} seconds".format(end - start))
 
-        if not val_accuracies or val_accuracy > max(val_accuracies):
-            torch.save(model.state_dict(), model_dir + 'model.pt')
-            print("Saved updated model")
+        # if not val_accuracies or val_accuracy > max(val_accuracies):
+        #     torch.save(model.state_dict(), model_dir + 'model.pt')
+        #     print("Saved updated model")
 
         train_losses.append(loss)
         # test_losses.append(test_loss)
