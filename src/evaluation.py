@@ -53,9 +53,9 @@ def compute_metrics(target_dot_brackets, input_sequences, pred_sequences_scores,
 def evaluate(model, test_loader, loss_function, batch_size, mode='test', device='cpu'):
     model.eval()
     with torch.no_grad():
-        loss = 0
-        avg_h_loss = 0
-        avg_accuracy = 0
+        losses = []
+        h_losses = []
+        accuracies = []
 
         for batch_idx, (sequences, dot_brackets, sequences_lengths) in enumerate(test_loader):
             sequences = sequences.to(device)
@@ -68,29 +68,30 @@ def evaluate(model, test_loader, loss_function, batch_size, mode='test', device=
 
             base_scores = model(sequences, sequences_lengths)
 
-            loss += loss_function(base_scores.view(-1, base_scores.shape[2]), dot_brackets.view(-1))
+            losses.append(loss_function(base_scores.view(-1, base_scores.shape[2]),
+                                       dot_brackets.view(-1)))
             avg_h_loss, avg_accuracy = compute_metrics(base_scores, dot_brackets)
-            avg_h_loss += avg_h_loss
-            avg_accuracy += avg_accuracy
+            h_losses.append(avg_h_loss)
+            accuracies.append(avg_accuracy)
 
-        loss /= len(test_loader)
-        avg_h_loss /= len(test_loader)
-        avg_accuracy /= len(test_loader)
+        avg_loss = np.mean(losses)
+        avg_h_loss = np.mean(h_losses)
+        avg_accuracy = np.mean(accuracies)
 
-        print("{} loss: {}".format(mode, loss))
+        print("{} loss: {}".format(mode, avg_loss))
         print("{} hamming loss: {}".format(mode, avg_h_loss))
         print("{} accuracy: {}".format(mode, avg_accuracy))
 
-        return loss, avg_h_loss, avg_accuracy
+        return avg_loss, avg_h_loss, avg_accuracy
 
 
 def evaluate_struct_to_seq(model, test_loader, loss_function, batch_size, mode='test',
                            device='cpu', verbose=False):
     model.eval()
     with torch.no_grad():
-        loss = 0
-        avg_h_loss = 0
-        avg_accuracy = 0
+        losses = []
+        h_losses = []
+        accuracies = []
 
         for batch_idx, (dot_brackets, sequences, sequences_lengths) in enumerate(test_loader):
             dot_brackets = dot_brackets.to(device)
@@ -103,21 +104,22 @@ def evaluate_struct_to_seq(model, test_loader, loss_function, batch_size, mode='
 
             base_scores = model(dot_brackets, sequences_lengths)
 
-            loss += loss_function(base_scores.view(-1, base_scores.shape[2]), dot_brackets.view(-1))
+            losses.append(loss_function(base_scores.view(-1, base_scores.shape[2]),
+                                        dot_brackets.view(-1)))
             avg_h_loss, avg_accuracy = compute_metrics(target_dot_brackets=dot_brackets,
                                                        input_sequences=sequences,
                                                        pred_sequences_scores=base_scores,
                                                        sequences_lengths=sequences_lengths,
                                                        verbose=verbose)
-            avg_h_loss += avg_h_loss
-            avg_accuracy += avg_accuracy
+            h_losses.append(avg_h_loss)
+            accuracies.append(avg_accuracy)
 
-        loss /= len(test_loader)
-        avg_h_loss /= len(test_loader)
-        avg_accuracy /= len(test_loader)
+        avg_loss = np.mean(losses)
+        avg_h_loss = np.mean(h_losses)
+        avg_accuracy = np.mean(accuracies)
 
-        print("{} loss: {}".format(mode, loss))
+        print("{} loss: {}".format(mode, avg_loss))
         print("{} hamming loss: {}".format(mode, avg_h_loss))
         print("{} accuracy: {}".format(mode, avg_accuracy))
 
-        return loss, avg_h_loss, avg_accuracy
+        return avg_loss, avg_h_loss, avg_accuracy

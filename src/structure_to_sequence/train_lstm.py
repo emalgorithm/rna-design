@@ -18,8 +18,10 @@ import pickle
 import os
 import time
 import argparse
+import numpy as np
 
 torch.manual_seed(0)
+np.random.seed(0)
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--model_name', default="test10", help='model name')
@@ -88,9 +90,9 @@ val_loader = torch.utils.data.DataLoader(val_set, batch_size=opt.batch_size, shu
 
 def train_epoch(model, train_loader):
     model.train()
-    avg_loss = 0
-    avg_h_loss = 0
-    avg_accuracy = 0
+    losses = []
+    h_losses = []
+    accuracies = []
 
     for batch_idx, (dot_brackets, sequences, sequences_lengths) in enumerate(train_loader):
         dot_brackets = dot_brackets.to(opt.device)
@@ -106,7 +108,7 @@ def train_epoch(model, train_loader):
 
         # Loss is computed with respect to the target sequence
         loss = loss_function(pred_sequences_scores.view(-1, pred_sequences_scores.shape[2]), sequences.view(-1))
-        avg_loss += loss
+        losses.append(loss)
         loss.backward()
         optimizer.step()
 
@@ -116,12 +118,12 @@ def train_epoch(model, train_loader):
                                                    pred_sequences_scores=pred_sequences_scores,
                                                    sequences_lengths=sequences_lengths,
                                                    verbose=opt.verbose)
-        avg_h_loss += avg_h_loss
-        avg_accuracy += avg_accuracy
+        h_losses.append(avg_h_loss)
+        accuracies.append(avg_accuracy)
 
-    avg_loss /= len(train_loader)
-    avg_h_loss /= len(train_loader)
-    avg_accuracy /= len(train_loader)
+    avg_loss = np.mean(losses)
+    avg_h_loss = np.mean(h_losses)
+    avg_accuracy = np.mean(accuracies)
 
     print("training loss is {}".format(avg_loss))
     print("training hamming loss: {}".format(avg_h_loss))
