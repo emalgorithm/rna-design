@@ -108,8 +108,8 @@ def train_epoch(model, train_loader):
 
         # Loss is computed with respect to the target sequence
         loss = loss_function(pred_sequences_scores.view(-1, pred_sequences_scores.shape[2]),
-                             sequences.view(-1)).item()
-        losses.append(loss)
+                             sequences.view(-1))
+        losses.append(loss.item())
         loss.backward()
         optimizer.step()
 
