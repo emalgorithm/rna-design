@@ -66,6 +66,9 @@ def evaluate_struct_to_seq(model, test_loader, loss_function, batch_size, mode='
         for batch_idx, (dot_brackets, sequences, sequences_lengths) in enumerate(test_loader):
             dot_brackets_strings = [decode_sequence(dot_bracket.cpu().numpy()[:sequences_lengths[
                 i]], ix_to_tag) for i, dot_bracket in enumerate(dot_brackets)]
+            sequences_strings = [decode_sequence(sequence.cpu().numpy()[:sequences_lengths[
+                i]], ix_to_word) for i, sequence in enumerate(sequences)]
+
             dot_brackets = dot_brackets.to(device)
             sequences = sequences.to(device)
             sequences_lengths = sequences_lengths.to(device)
@@ -89,12 +92,15 @@ def evaluate_struct_to_seq(model, test_loader, loss_function, batch_size, mode='
             h_loss += np.mean([hamming_loss(list(dot_brackets_strings[i]),
                           list(pred_dot_brackets[i])) for i in range(len(
                 pred_dot_brackets))])
-            # accuracy += compute_accuracy(dot_brackets.view(-1).cpu().numpy(), pred_dot_bracket)
+            accuracy += np.mean([pred_dot_bracket == dot_brackets_strings[i] for i,
+                                 pred_dot_bracket in enumerate(pred_dot_brackets)])
 
-            for i in range(len(dot_brackets_strings)):
-                print("REAL: {}".format(dot_brackets_strings[i]))
-                print("PRED: {}".format(pred_dot_brackets[i]))
-                print()
+            # for i in range(len(dot_brackets_strings)):
+            #     print("REAL SEQUENCE: {}".format(sequences_strings[i][:sequences_lengths[i]]))
+            #     print("PRED SEQUENCE: {}".format(pred_sequences[i][:sequences_lengths[i]]))
+            #     print("REAL: {}".format(dot_brackets_strings[i]))
+            #     print("PRED: {}".format(pred_dot_brackets[i]))
+            #     print()
 
         loss /= len(test_loader)
         h_loss /= len(test_loader)
