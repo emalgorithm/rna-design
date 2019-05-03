@@ -30,24 +30,25 @@ def compute_metrics(target_dot_brackets, input_sequences, pred_sequences_scores,
     pred_sequences_np = pred_sequences_scores.max(2)[1].cpu().numpy()
     pred_sequences_strings = [decode_sequence(pred[:sequences_lengths[i]], ix_to_word) for i,
                                                           pred in enumerate(pred_sequences_np)]
-    pred_dot_brackets_strings = [RNA.fold(pred_sequences_strings[i])[0] for
-                                 i, pred_sequence in enumerate(pred_sequences_strings)]
-
-    h_loss = np.mean([hamming_loss(list(dot_brackets_strings[i]),
-                                   list(pred_dot_brackets_strings[i])) for i in range(len(
-        pred_dot_brackets_strings))])
-    accuracy = np.mean([1 if (dot_brackets_strings[i] == pred_dot_brackets_strings[i]) else 0 for i
-                       in range(len(pred_dot_brackets_strings))])
+    # pred_dot_brackets_strings = [RNA.fold(pred_sequences_strings[i])[0] for
+    #                              i, pred_sequence in enumerate(pred_sequences_strings)]
+    #
+    # h_loss = np.mean([hamming_loss(list(dot_brackets_strings[i]),
+    #                                list(pred_dot_brackets_strings[i])) for i in range(len(
+    #     pred_dot_brackets_strings))])
+    # accuracy = np.mean([1 if (dot_brackets_strings[i] == pred_dot_brackets_strings[i]) else 0 for i
+    #                    in range(len(pred_dot_brackets_strings))])
 
     if verbose:
         for i in range(len(dot_brackets_strings)):
             print("REAL SEQUENCE: {}".format(sequences_strings[i]))
             print("PRED SEQUENCE: {}".format(pred_sequences_strings[i]))
-            print("REAL: {}".format(dot_brackets_strings[i]))
-            print("PRED: {}".format(pred_dot_brackets_strings[i]))
+            # print("REAL: {}".format(dot_brackets_strings[i]))
+            # print("PRED: {}".format(pred_dot_brackets_strings[i]))
             print()
 
-    return h_loss, accuracy
+    # return h_loss, accuracy
+    return 0, 0
 
 
 def evaluate(model, test_loader, loss_function, batch_size, mode='test', device='cpu'):
@@ -86,7 +87,7 @@ def evaluate(model, test_loader, loss_function, batch_size, mode='test', device=
 
 
 def evaluate_struct_to_seq(model, test_loader, loss_function, batch_size, mode='test',
-                           device='cpu', verbose=False):
+                           device='cpu', verbose=False, graph=False):
     model.eval()
     with torch.no_grad():
         losses = []
