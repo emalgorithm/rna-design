@@ -25,12 +25,14 @@ from src.gcn.gcn_util import sparse_mx_to_torch_sparse_tensor
 from src.util import dotbracket_to_graph
 from src.gcn.gcn import GCN
 
+from torch_geometric.data import Data
 
-class Data:
-    def __init__(self, x, edge_index, edge_attr):
-        self.x = x
-        self.edge_index = edge_index
-        self.edge_attr = edge_attr
+
+# class Data:
+#     def __init__(self, x, edge_index, edge_attr):
+#         self.x = x
+#         self.edge_index = edge_index
+#         self.edge_attr = edge_attr
 
 
 # from torch_geometric.data import Data
@@ -127,7 +129,9 @@ def train_epoch(model, train_loader):
         # TODO: Need to have data.edge_attr
         edge_attr = torch.Tensor(np.zeros((n_edges, 1)))
 
-        data = Data(x=x, edge_index=adj, edge_attr=edge_attr)
+        edge_index = torch.LongTensor(list(g.edges())).t().contiguous()
+        data = Data(x=x, edge_index=edge_index, edge_attr=edge_attr)
+        # data = Data(x=x, edge_index=adj, edge_attr=edge_attr)
 
         # # Skip last batch if it does not have full size
         # if dot_brackets.shape[0] < opt.batch_size:
