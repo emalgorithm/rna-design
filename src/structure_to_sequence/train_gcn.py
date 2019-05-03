@@ -124,13 +124,15 @@ def train_epoch(model, train_loader):
         n_nodes = len(dot_bracket_string)
         n_edges = g.number_of_edges() * 2
         degrees = [g.degree[i] for i in range(len(g))]
-        x = torch.Tensor([degrees]).t().contiguous()
+        idx = [i for i in range(len(g))]
+        x = torch.Tensor([degrees, idx]).t().contiguous()
         # TODO: Need to have data.edge_attr
         edge_attr = torch.Tensor(np.zeros((n_edges, 1)))
 
+        # TODO: Add self edges to edge list
         edge_index = torch.LongTensor(list(g.edges())).t().contiguous()
-        data = Data(x=x, edge_index=edge_index, edge_attr=edge_attr)
-        # data = Data(x=x, edge_index=adj, edge_attr=edge_attr)
+        # data = Data(x=x, edge_index=edge_index, edge_attr=edge_attr)
+        data = Data(x=x, edge_index=adj, edge_attr=edge_attr)
 
         # # Skip last batch if it does not have full size
         # if dot_brackets.shape[0] < opt.batch_size:

@@ -43,7 +43,7 @@ def compute_metrics(target_dot_brackets, input_sequences, pred_sequences_scores,
         for i in range(len(dot_brackets_strings)):
             print("REAL SEQUENCE: {}".format(sequences_strings[i]))
             print("PRED SEQUENCE: {}".format(pred_sequences_strings[i]))
-            # print("REAL: {}".format(dot_brackets_strings[i]))
+            print("REAL: {}".format(dot_brackets_strings[i]))
             # print("PRED: {}".format(pred_dot_brackets_strings[i]))
             print()
 
