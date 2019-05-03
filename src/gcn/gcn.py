@@ -19,11 +19,11 @@ class GCN(nn.Module):
         # self.conv2 = GATConv(hidden_dim, hidden_dim)
         # self.conv3 = GATConv(hidden_dim, n_classes)
 
-        nn1 = nn.Linear(1, 1)
+        nn1 = nn.Linear(n_features, hidden_dim)
         self.conv1 = NNConv(n_features, hidden_dim, nn1)
-        nn2 = nn.Linear(1, 1)
+        nn2 = nn.Linear(n_features, hidden_dim)
         self.conv2 = NNConv(hidden_dim, hidden_dim, nn2)
-        nn3 = nn.Linear(1, 1)
+        nn3 = nn.Linear(n_features, hidden_dim)
         self.conv3 = NNConv(hidden_dim, n_classes, nn3)
 
         # self.conv1 = GraphConvolution(n_features, hidden_dim)
