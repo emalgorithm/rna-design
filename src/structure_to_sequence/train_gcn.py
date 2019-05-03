@@ -66,7 +66,7 @@ parser.add_argument('--test_dataset', type=str,
 opt = parser.parse_args()
 print(opt)
 
-n_features = 1
+n_features = 2
 n_classes = len(word_to_ix)
 model = GCN(n_features, hidden_dim=10, n_classes=n_classes, dropout=0, device=opt.device)
 loss_function = nn.NLLLoss(ignore_index=word_to_ix['<PAD>'])
@@ -126,13 +126,14 @@ def train_epoch(model, train_loader):
         degrees = [g.degree[i] for i in range(len(g))]
         idx = [i for i in range(len(g))]
         x = torch.Tensor([degrees, idx]).t().contiguous()
-        # TODO: Need to have data.edge_attr
-        edge_attr = torch.Tensor(np.zeros((n_edges, 1)))
 
-        # TODO: Add self edges to edge list
+        edges = list(g.edges(data=True))
+        edge_attr = torch.Tensor([[-1 if e[2]['edge_type'] == 'adjacent' else 1 for e in
+                                  edges]]).t().contiguous()
+
         edge_index = torch.LongTensor(list(g.edges())).t().contiguous()
-        # data = Data(x=x, edge_index=edge_index, edge_attr=edge_attr)
-        data = Data(x=x, edge_index=adj, edge_attr=edge_attr)
+        data = Data(x=x, edge_index=edge_index, edge_attr=edge_attr)
+        # data = Data(x=x, edge_index=adj, edge_attr=edge_attr)
 
         # # Skip last batch if it does not have full size
         # if dot_brackets.shape[0] < opt.batch_size:
