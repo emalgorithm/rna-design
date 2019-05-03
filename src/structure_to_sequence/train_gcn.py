@@ -25,17 +25,15 @@ from src.gcn.gcn_util import sparse_mx_to_torch_sparse_tensor
 from src.util import dotbracket_to_graph
 from src.gcn.gcn import GCN
 
-from torch_geometric.data import Data
-
-
-# class Data:
-#     def __init__(self, x, edge_index, edge_attr):
-#         self.x = x
-#         self.edge_index = edge_index
-#         self.edge_attr = edge_attr
-
-
 # from torch_geometric.data import Data
+
+
+class Data:
+    def __init__(self, x, edge_index, edge_attr):
+        self.x = x
+        self.edge_index = edge_index
+        self.edge_attr = edge_attr
+
 
 torch.manual_seed(0)
 np.random.seed(0)
@@ -68,7 +66,7 @@ parser.add_argument('--test_dataset', type=str,
 opt = parser.parse_args()
 print(opt)
 
-n_features = 10
+n_features = 1
 n_classes = len(word_to_ix)
 model = GCN(n_features, hidden_dim=10, n_classes=n_classes, dropout=0, device=opt.device)
 loss_function = nn.NLLLoss(ignore_index=word_to_ix['<PAD>'])
@@ -125,7 +123,8 @@ def train_epoch(model, train_loader):
 
         n_nodes = len(dot_bracket_string)
         n_edges = g.number_of_edges() * 2
-        x = torch.rand(n_nodes, n_features)
+        degrees = [g.degree[i] for i in range(len(g))]
+        x = torch.Tensor([degrees]).t().contiguous()
         # TODO: Need to have data.edge_attr
         edge_attr = torch.Tensor(np.zeros((n_edges, 1)))
 
