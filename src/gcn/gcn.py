@@ -1,6 +1,6 @@
 import torch.nn as nn
 import torch.nn.functional as F
-from torch_geometric.nn import GCNConv, NNConv, GINConv
+from torch_geometric.nn import GCNConv, NNConv, GINConv, GATConv
 from src.gcn.graph_convolution import GraphConvolution
 
 
@@ -11,9 +11,15 @@ class GCN(nn.Module):
         # self.conv2 = GCNConv(hidden_dim, hidden_dim)
         # self.conv3 = GCNConv(hidden_dim, n_classes)
 
-        self.conv1 = GINConv(n_features, hidden_dim)
-        self.conv2 = GINConv(hidden_dim, hidden_dim)
-        self.conv3 = GINConv(hidden_dim, n_classes)
+        # self.conv1 = GINConv(n_features, hidden_dim)
+        # self.conv2 = GINConv(hidden_dim, hidden_dim)
+        # self.conv3 = GINConv(hidden_dim, n_classes)
+
+        self.conv1 = GATConv(n_features, hidden_dim)
+        self.conv2 = GATConv(hidden_dim, hidden_dim)
+        self.conv3 = GATConv(hidden_dim, n_classes)
+
+
 
         # self.conv1 = GraphConvolution(n_features, hidden_dim)
         # self.conv2 = GraphConvolution(hidden_dim, hidden_dim)
