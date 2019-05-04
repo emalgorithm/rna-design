@@ -47,13 +47,13 @@ class GCN(nn.Module):
         elif conv_type == "GIN":
             net = nn.Sequential(nn.Linear(n_input_features, n_output_features), nn.ReLU(),
                                 nn.Linear(n_output_features, n_output_features))
-            return GINConv(n_input_features, n_output_features, net)
+            return GINConv(net)
         else:
             raise Exception("{} convolutional layer is not supported.".format(conv_type))
 
     @staticmethod
     def apply_conv_layer(conv, x, adj, edge_attr, conv_type="GCN"):
-        if conv_type in ["GCN", "GAT"]:
+        if conv_type in ["GCN", "GAT", "GIN"]:
             return conv(x, adj)
         elif conv_type in ["MPNN"]:
             return conv(x, adj, edge_attr)
