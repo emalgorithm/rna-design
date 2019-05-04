@@ -24,6 +24,7 @@ import networkx as nx
 from src.gcn.gcn_util import sparse_mx_to_torch_sparse_tensor
 from src.util import dotbracket_to_graph
 from src.gcn.gcn import GCN
+from sklearn.preprocessing import scale
 
 from torch_geometric.data import Data
 
@@ -108,6 +109,8 @@ def train_epoch(model, train_loader):
 
         g = dotbracket_to_graph(dot_bracket_string)
         degrees = [g.degree[i] for i in range(len(g))]
+        # Standardize features
+        degrees = scale(degrees)
         x = torch.Tensor([degrees]).t().contiguous().to(opt.device)
 
         edges = list(g.edges(data=True))
