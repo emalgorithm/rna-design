@@ -25,15 +25,7 @@ from src.gcn.gcn_util import sparse_mx_to_torch_sparse_tensor
 from src.util import dotbracket_to_graph
 from src.gcn.gcn import GCN
 
-# from torch_geometric.data import Data
-
-
-class Data:
-    def __init__(self, x, edge_index, edge_attr):
-        self.x = x
-        self.edge_index = edge_index
-        self.edge_attr = edge_attr
-
+from torch_geometric.data import Data
 
 torch.manual_seed(0)
 np.random.seed(0)
@@ -69,7 +61,7 @@ print(opt)
 n_features = 1
 n_classes = len(word_to_ix)
 model = GCN(n_features, hidden_dim=10, n_classes=n_classes, n_conv_layers=10, dropout=0,
-            device=opt.device)
+            device=opt.device).to(opt.device)
 loss_function = nn.NLLLoss(ignore_index=word_to_ix['<PAD>'])
 optimizer = optim.Adam(model.parameters(), lr=opt.learning_rate)
 
@@ -126,16 +118,15 @@ def train_epoch(model, train_loader):
         n_edges = g.number_of_edges() * 2
         degrees = [g.degree[i] for i in range(len(g))]
         idx = [i for i in range(len(g))]
-        x = torch.Tensor([degrees]).t().contiguous()
+        x = torch.Tensor([degrees]).t().contiguous().to(opt.device)
 
         edges = list(g.edges(data=True))
         # One-hot encoding of the edge type
         edge_attr = torch.Tensor([[0, 1] if e[2]['edge_type'] == 'adjacent' else [1, 0] for e in
-                                  edges])
+                                  edges]).to(opt.device)
 
-        edge_index = torch.LongTensor(list(g.edges())).t().contiguous()
+        edge_index = torch.LongTensor(list(g.edges())).t().contiguous().to(opt.device)
         data = Data(x=x, edge_index=edge_index, edge_attr=edge_attr)
-        # data = Data(x=x, edge_index=adj, edge_attr=edge_attr)
 
         # # Skip last batch if it does not have full size
         # if dot_brackets.shape[0] < opt.batch_size:

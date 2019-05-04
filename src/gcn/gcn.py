@@ -5,7 +5,7 @@ from torch_geometric.nn import GCNConv, NNConv, GINConv, GATConv
 
 class GCN(nn.Module):
     def __init__(self, n_features, hidden_dim, n_classes, n_conv_layers=3, dropout=0,
-                 conv_type="GIN", device='cpu'):
+                 conv_type="MPNN", device='cpu'):
         super(GCN, self).__init__()
         self.convs = nn.ModuleList()
 
