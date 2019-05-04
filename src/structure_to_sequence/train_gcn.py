@@ -66,7 +66,7 @@ parser.add_argument('--test_dataset', type=str,
 opt = parser.parse_args()
 print(opt)
 
-n_features = 2
+n_features = 1
 n_classes = len(word_to_ix)
 model = GCN(n_features, hidden_dim=10, n_classes=n_classes, n_conv_layers=10, dropout=0,
             device=opt.device)
@@ -126,7 +126,7 @@ def train_epoch(model, train_loader):
         n_edges = g.number_of_edges() * 2
         degrees = [g.degree[i] for i in range(len(g))]
         idx = [i for i in range(len(g))]
-        x = torch.Tensor([degrees, idx]).t().contiguous()
+        x = torch.Tensor([degrees]).t().contiguous()
 
         edges = list(g.edges(data=True))
         # One-hot encoding of the edge type
