@@ -5,7 +5,7 @@ from src.gcn.graph_convolution import GraphConvolution
 
 
 class GCN(nn.Module):
-    def __init__(self, n_features, hidden_dim, n_classes, dropout, device='cpu'):
+    def __init__(self, n_features, hidden_dim, n_classes, n_conv_layers=3, dropout=0, device='cpu'):
         super(GCN, self).__init__()
         # self.conv1 = GCNConv(n_features, hidden_dim)
         # self.conv2 = GCNConv(hidden_dim, hidden_dim)
@@ -14,10 +14,17 @@ class GCN(nn.Module):
         # self.conv1 = GINConv(n_features, hidden_dim)
         # self.conv2 = GINConv(hidden_dim, hidden_dim)
         # self.conv3 = GINConv(hidden_dim, n_classes)
+        self.convs = nn.ModuleList()
 
-        self.conv1 = GATConv(n_features, hidden_dim)
-        self.conv2 = GATConv(hidden_dim, hidden_dim)
-        self.conv3 = GATConv(hidden_dim, n_classes)
+        # First layer
+        self.convs.append(GATConv(n_features, hidden_dim))
+
+        # Hidden layers
+        for i in range(n_conv_layers - 1):
+            self.convs.append(GATConv(hidden_dim, hidden_dim))
+
+        # Fully connected layer
+        self.fc = nn.Linear(hidden_dim, n_classes)
 
         # nn1 = nn.Linear(1, n_features)
         # self.conv1 = NNConv(n_features, hidden_dim, nn1)
@@ -35,17 +42,15 @@ class GCN(nn.Module):
     def forward(self, data):
         x, adj, edge_attr = data.x, data.edge_index, data.edge_attr
 
-        x = self.conv1(x, adj)
-        # x = self.conv1(x, adj, edge_attr)
-        x = F.relu(x)
-        x = F.dropout(x, self.dropout, training=self.training)
+        for conv in self.convs:
+            x = conv(x, adj)
+            # x = self.conv1(x, adj, edge_attr)
+            x = F.relu(x)
+            x = F.dropout(x, self.dropout, training=self.training)
 
-        x = self.conv2(x, adj)
-        # x = self.conv2(x, adj, edge_attr)
-        x = F.relu(x)
-        x = F.dropout(x, self.dropout, training=self.training)
-
-        x = self.conv3(x, adj)
-        # x = self.conv3(x, adj, edge_attr)
+        x = self.fc(x)
+        # x = self.conv1(x, adj)
+        # x = self.conv2(x, adj)
+        # x = self.conv3(x, adj)
 
         return F.log_softmax(x, dim=1)

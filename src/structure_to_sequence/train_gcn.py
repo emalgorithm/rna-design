@@ -68,7 +68,8 @@ print(opt)
 
 n_features = 2
 n_classes = len(word_to_ix)
-model = GCN(n_features, hidden_dim=10, n_classes=n_classes, dropout=0, device=opt.device)
+model = GCN(n_features, hidden_dim=10, n_classes=n_classes, n_conv_layers=10, dropout=0,
+            device=opt.device)
 loss_function = nn.NLLLoss(ignore_index=word_to_ix['<PAD>'])
 optimizer = optim.Adam(model.parameters(), lr=opt.learning_rate)
 
@@ -128,8 +129,9 @@ def train_epoch(model, train_loader):
         x = torch.Tensor([degrees, idx]).t().contiguous()
 
         edges = list(g.edges(data=True))
-        edge_attr = torch.Tensor([[-1 if e[2]['edge_type'] == 'adjacent' else 1 for e in
-                                  edges]]).t().contiguous()
+        # One-hot encoding of the edge type
+        edge_attr = torch.Tensor([[0, 1] if e[2]['edge_type'] == 'adjacent' else [1, 0] for e in
+                                  edges])
 
         edge_index = torch.LongTensor(list(g.edges())).t().contiguous()
         data = Data(x=x, edge_index=edge_index, edge_attr=edge_attr)
