@@ -104,20 +104,11 @@ def train_epoch(model, train_loader):
     for batch_idx, (sequences_strings, dot_brackets_strings) in enumerate(train_loader):
         dot_bracket_string = dot_brackets_strings[0]
         seq_string = sequences_strings[0]
-        sequence = prepare_sequence(seq_string, word_to_ix)
-        dot_bracket = prepare_sequence(dot_bracket_string, tag_to_ix)
+        sequence = prepare_sequence(seq_string, word_to_ix).to(opt.device)
+        dot_bracket = prepare_sequence(dot_bracket_string, tag_to_ix).to(opt.device)
 
         g = dotbracket_to_graph(dot_bracket_string)
-        adj = nx.adjacency_matrix(g, nodelist=sorted(list(g.nodes())))
-        adj = sparse_mx_to_torch_sparse_tensor(adj)
-
-        adj = adj.to(opt.device)
-        # sequences = sequences.to(opt.device)
-
-        n_nodes = len(dot_bracket_string)
-        n_edges = g.number_of_edges() * 2
         degrees = [g.degree[i] for i in range(len(g))]
-        idx = [i for i in range(len(g))]
         x = torch.Tensor([degrees]).t().contiguous().to(opt.device)
 
         edges = list(g.edges(data=True))
