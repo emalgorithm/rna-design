@@ -5,7 +5,7 @@ from torch_geometric.nn import GCNConv, NNConv, GINConv, GATConv
 
 class GCN(nn.Module):
     def __init__(self, n_features, hidden_dim, n_classes, n_conv_layers=3, dropout=0,
-                 conv_type="MPNN", device='cpu'):
+                 conv_type="GIN", device='cpu'):
         super(GCN, self).__init__()
         self.convs = nn.ModuleList()
 
@@ -44,6 +44,12 @@ class GCN(nn.Module):
             net = nn.Sequential(nn.Linear(2, 10), nn.ReLU(), nn.Linear(10, n_input_features *
                                                                       n_output_features))
             return NNConv(n_input_features, n_output_features, net)
+        elif conv_type == "GIN":
+            net = nn.Sequential(nn.Linear(n_input_features, n_output_features), nn.ReLU(),
+                                nn.Linear(n_output_features, n_output_features))
+            return GINConv(n_input_features, n_output_features, net)
+        else:
+            raise Exception("{} convolutional layer is not supported.".format(conv_type))
 
     @staticmethod
     def apply_conv_layer(conv, x, adj, edge_attr, conv_type="GCN"):
@@ -51,3 +57,5 @@ class GCN(nn.Module):
             return conv(x, adj)
         elif conv_type in ["MPNN"]:
             return conv(x, adj, edge_attr)
+        else:
+            raise Exception("{} convolutional layer is not supported.".format(conv_type))
