@@ -17,11 +17,17 @@ class GCN(nn.Module):
         self.convs = nn.ModuleList()
 
         # First layer
-        self.convs.append(GATConv(n_features, hidden_dim))
+        # self.convs.append(GATConv(n_features, hidden_dim))
+        nn1 = nn.Sequential(nn.Linear(2, hidden_dim), nn.ReLU(), nn.Linear(hidden_dim, hidden_dim
+                                                                           * n_features))
+        self.convs.append(NNConv(n_features, hidden_dim, nn1))
 
         # Hidden layers
         for i in range(n_conv_layers - 1):
-            self.convs.append(GATConv(hidden_dim, hidden_dim))
+            nn2 = nn.Sequential(nn.Linear(2, hidden_dim), nn.ReLU(), nn.Linear(hidden_dim,
+                                                                               hidden_dim * hidden_dim))
+            # self.convs.append(GATConv(hidden_dim, hidden_dim))
+            self.convs.append(NNConv(hidden_dim, hidden_dim, nn2))
 
         # Fully connected layer
         self.fc = nn.Linear(hidden_dim, n_classes)
@@ -43,8 +49,8 @@ class GCN(nn.Module):
         x, adj, edge_attr = data.x, data.edge_index, data.edge_attr
 
         for conv in self.convs:
-            x = conv(x, adj)
-            # x = self.conv1(x, adj, edge_attr)
+            # x = conv(x, adj)
+            x = conv(x, adj, edge_attr)
             x = F.relu(x)
             x = F.dropout(x, self.dropout, training=self.training)
 
