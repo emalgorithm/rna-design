@@ -35,17 +35,16 @@ parser.add_argument('--model_name', default="test10", help='model name')
 parser.add_argument('--device', default="cpu", help='cpu or cuda')
 parser.add_argument('--n_samples', type=int, default=None, help='Number of samples to train on')
 parser.add_argument('--n_epochs', type=int, default=10000, help='Number of samples to train on')
-parser.add_argument('--hidden_dim', type=int, default=128, help='Dimension of hidden '
-                                                                'representations of LSTM')
-parser.add_argument('--embedding_dim', type=int, default=6, help='Dimension of embedding for '
-                                                                   'the bases')
+parser.add_argument('--hidden_dim', type=int, default=10, help='Dimension of hidden '
+                                                                'representations of convolutional layers')
 parser.add_argument('--batch_size', type=int, default=64, help='Batch size')
 parser.add_argument('--learning_rate', type=float, default=0.0004, help='Learning rate')
 parser.add_argument('--seq_max_len', type=int, default=100, help='Maximum length of sequences '
                                                                  'used for training and testing')
 parser.add_argument('--seq_min_len', type=int, default=1, help='Maximum length of sequences '
                                                                  'used for training and testing')
-parser.add_argument('--lstm_layers', type=int, default=2, help='Number of layers of the lstm')
+parser.add_argument('--n_conv_layers', type=int, default=3, help='Number of convolutional layers')
+parser.add_argument('--conv_type', type=str, default="MPNN", help='Type of convolutional layers')
 parser.add_argument('--dropout', type=float, default=0, help='Amount of dropout')
 parser.add_argument('--verbose', type=bool, default=False, help='Verbosity')
 parser.add_argument('--train_dataset', type=str,
@@ -60,8 +59,8 @@ print(opt)
 
 n_features = 1
 n_classes = len(word_to_ix)
-model = GCN(n_features, hidden_dim=10, n_classes=n_classes, n_conv_layers=10, dropout=0,
-            device=opt.device).to(opt.device)
+model = GCN(n_features, hidden_dim=opt.hidden_dim, n_classes=n_classes, n_conv_layers=opt.n_conv_layers,
+            dropout=opt.dropout, device=opt.device).to(opt.device)
 loss_function = nn.NLLLoss(ignore_index=word_to_ix['<PAD>'])
 optimizer = optim.Adam(model.parameters(), lr=opt.learning_rate)
 
