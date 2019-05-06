@@ -41,7 +41,7 @@ def compute_metrics_graph(target_dot_brackets, input_sequences, pred_sequences_s
     sequences_strings = [decode_sequence(sequence, ix_to_word) for i, sequence in enumerate(
         input_sequences_np)]
 
-    pred_sequences_strings = [decode_sequence(pred, ix_to_word) for i, pred in enumerate(
+    pred_sequences_strings = [decode_sequence(pred, ix_to_word).replace('<PAD>', 'A') for i, pred in enumerate(
         pred_sequences_np)]
     pred_dot_brackets_strings = [RNA.fold(pred_sequences_strings[i])[0] for
                                  i, pred_sequence in enumerate(pred_sequences_strings)]
@@ -170,8 +170,9 @@ def evaluate_struct_to_seq(model, test_loader, loss_function, batch_size, mode='
         return avg_loss, avg_h_loss, avg_accuracy
 
 
-def evaluate_struct_to_seq_graph(model, test_loader, loss_function, batch_size=None, mode='test',
-                                 device='cpu', verbose=False):
+def evaluate_struct_to_seq_graph(model, test_loader, loss_function=None, batch_size=None,
+                                 mode='test', device='cpu', verbose=False, gan=False,
+                                 n_random_features=0):
     model.eval()
     with torch.no_grad():
         losses = []
@@ -186,9 +187,16 @@ def evaluate_struct_to_seq_graph(model, test_loader, loss_function, batch_size=N
             dot_bracket = data.y.to(device)
             sequence = data.sequence.to(device)
 
+            if gan:
+                z = torch.Tensor(np.random.normal(0, 1, (data.x.shape[0], n_random_features))).to(
+                    device)
+                data.x = torch.cat((data.x, z), dim=1)
+
             pred_sequences_scores = model(data)
 
-            losses.append(loss_function(pred_sequences_scores, sequence).item())
+            if loss_function:
+                losses.append(loss_function(pred_sequences_scores, sequence).item())
+
             # Metrics are computed with respect to generated folding
             avg_h_loss, avg_accuracy = compute_metrics_graph(target_dot_brackets=dot_bracket,
                                                              input_sequences=sequence,
@@ -198,7 +206,7 @@ def evaluate_struct_to_seq_graph(model, test_loader, loss_function, batch_size=N
             h_losses.append(avg_h_loss)
             accuracies.append(avg_accuracy)
 
-        avg_loss = np.mean(losses)
+        avg_loss = 0 if not losses else np.mean(losses)
         avg_h_loss = np.mean(h_losses)
         avg_accuracy = np.mean(accuracies)
 

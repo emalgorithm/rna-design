@@ -1,11 +1,12 @@
+import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from torch_geometric.nn import GCNConv, NNConv, GINConv, GATConv
+from torch_geometric.nn import GCNConv, NNConv, GINConv, GATConv, global_add_pool
 
 
 class GCN(nn.Module):
     def __init__(self, n_features, hidden_dim, n_classes, n_conv_layers=3, dropout=0,
-                 conv_type="MPNN"):
+                 conv_type="MPNN", node_classification=True):
         super(GCN, self).__init__()
         self.convs = nn.ModuleList()
 
@@ -21,16 +22,23 @@ class GCN(nn.Module):
 
         self.dropout = dropout
         self.conv_type = conv_type
+        self.node_classification = node_classification
 
     def forward(self, data):
-        x, adj, edge_attr = data.x, data.edge_index, data.edge_attr
+        x, adj, edge_attr, batch = data.x, data.edge_index, data.edge_attr, data.batch
 
         for conv in self.convs:
             x = self.apply_conv_layer(conv, x, adj, edge_attr, conv_type=self.conv_type)
             x = F.relu(x)
             x = F.dropout(x, self.dropout, training=self.training)
 
+        if not self.node_classification:
+            x = global_add_pool(x, batch)
+
         x = self.fc(x)
+
+        if not self.node_classification:
+            return torch.sigmoid(x)
 
         return F.log_softmax(x, dim=1)
 
