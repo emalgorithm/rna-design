@@ -20,6 +20,50 @@ def compute_accuracy(target, pred, ignore_idx=0):
     return accuracy / len(pred)
 
 
+def compute_metrics_graph(target_dot_brackets, input_sequences, pred_sequences_scores, batch,
+                    verbose=False):
+    pred_sequence = pred_sequences_scores.max(1)[1]
+    target_dot_brackets_np = []
+    pred_sequences_np = []
+    input_sequences_np = []
+
+    for j, i in enumerate(batch):
+        if len(target_dot_brackets_np) <= i:
+            pred_sequences_np.append([])
+            target_dot_brackets_np.append([])
+            input_sequences_np.append([])
+        pred_sequences_np[i].append(pred_sequence[j].item())
+        target_dot_brackets_np[i].append(target_dot_brackets[j].item())
+        input_sequences_np[i].append(input_sequences[j].item())
+
+    dot_brackets_strings = [decode_sequence(dot_bracket, ix_to_tag) for i, dot_bracket in
+                            enumerate(target_dot_brackets_np)]
+    sequences_strings = [decode_sequence(sequence, ix_to_word) for i, sequence in enumerate(
+        input_sequences_np)]
+
+    pred_sequences_strings = [decode_sequence(pred, ix_to_word) for i, pred in enumerate(
+        pred_sequences_np)]
+    pred_dot_brackets_strings = [RNA.fold(pred_sequences_strings[i])[0] for
+                                 i, pred_sequence in enumerate(pred_sequences_strings)]
+
+    h_loss = np.mean([hamming_loss(list(dot_brackets_strings[i]),
+                                   list(pred_dot_brackets_strings[i])) for i in range(len(
+        pred_dot_brackets_strings))])
+    accuracy = np.mean([1 if (dot_brackets_strings[i] == pred_dot_brackets_strings[i]) else 0 for i
+                       in range(len(pred_dot_brackets_strings))])
+
+    if verbose:
+        for i in range(len(dot_brackets_strings)):
+            print("REAL SEQUENCE: {}".format(sequences_strings[i]))
+            print("PRED SEQUENCE: {}".format(pred_sequences_strings[i]))
+            print("REAL: {}".format(dot_brackets_strings[i]))
+            print("PRED: {}".format(pred_dot_brackets_strings[i]))
+            print()
+
+    return h_loss, accuracy
+    # return 0, 0
+
+
 def compute_metrics(target_dot_brackets, input_sequences, pred_sequences_scores, sequences_lengths,
                     verbose=False):
     dot_brackets_strings = [decode_sequence(dot_bracket.cpu().numpy()[:sequences_lengths[
@@ -30,25 +74,25 @@ def compute_metrics(target_dot_brackets, input_sequences, pred_sequences_scores,
     pred_sequences_np = pred_sequences_scores.max(2)[1].cpu().numpy()
     pred_sequences_strings = [decode_sequence(pred[:sequences_lengths[i]], ix_to_word) for i,
                                                           pred in enumerate(pred_sequences_np)]
-    # pred_dot_brackets_strings = [RNA.fold(pred_sequences_strings[i])[0] for
-    #                              i, pred_sequence in enumerate(pred_sequences_strings)]
-    #
-    # h_loss = np.mean([hamming_loss(list(dot_brackets_strings[i]),
-    #                                list(pred_dot_brackets_strings[i])) for i in range(len(
-    #     pred_dot_brackets_strings))])
-    # accuracy = np.mean([1 if (dot_brackets_strings[i] == pred_dot_brackets_strings[i]) else 0 for i
-    #                    in range(len(pred_dot_brackets_strings))])
+    pred_dot_brackets_strings = [RNA.fold(pred_sequences_strings[i])[0] for
+                                 i, pred_sequence in enumerate(pred_sequences_strings)]
+
+    h_loss = np.mean([hamming_loss(list(dot_brackets_strings[i]),
+                                   list(pred_dot_brackets_strings[i])) for i in range(len(
+        pred_dot_brackets_strings))])
+    accuracy = np.mean([1 if (dot_brackets_strings[i] == pred_dot_brackets_strings[i]) else 0 for i
+                       in range(len(pred_dot_brackets_strings))])
 
     if verbose:
         for i in range(len(dot_brackets_strings)):
             print("REAL SEQUENCE: {}".format(sequences_strings[i]))
             print("PRED SEQUENCE: {}".format(pred_sequences_strings[i]))
             print("REAL: {}".format(dot_brackets_strings[i]))
-            # print("PRED: {}".format(pred_dot_brackets_strings[i]))
+            print("PRED: {}".format(pred_dot_brackets_strings[i]))
             print()
 
-    # return h_loss, accuracy
-    return 0, 0
+    return h_loss, accuracy
+    # return 0, 0
 
 
 def evaluate(model, test_loader, loss_function, batch_size, mode='test', device='cpu'):

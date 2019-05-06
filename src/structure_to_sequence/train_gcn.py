@@ -10,11 +10,12 @@ import torch.nn as nn
 import torch.optim as optim
 from src.data_util.rna_dataset import RNADataset
 from src.data_util.rna_dataset_single_file import RNADatasetSingleFile
+from src.data_util.rna_graph_dataset import RNAGraphDataset
 from torchvision import transforms
 from src.visualization_util import plot_loss
 from src.data_util.data_constants import word_to_ix, tag_to_ix
 from src.evaluation import masked_hamming_loss, compute_accuracy, evaluate, \
-    evaluate_struct_to_seq, compute_metrics
+    evaluate_struct_to_seq, compute_metrics, compute_metrics_graph
 import pickle
 import os
 import time
@@ -26,7 +27,7 @@ from src.util import dotbracket_to_graph
 from src.gcn.gcn import GCN
 from sklearn.preprocessing import scale
 
-from torch_geometric.data import Data
+from torch_geometric.data import Data, DataLoader
 
 torch.manual_seed(0)
 np.random.seed(0)
@@ -69,30 +70,35 @@ optimizer = optim.Adam(model.parameters(), lr=opt.learning_rate)
 x_transform = transforms.Lambda(lambda sequences: prepare_sequence(sequences, tag_to_ix))
 y_transform = transforms.Lambda(lambda sequences: prepare_sequence(sequences, word_to_ix))
 
-# train_set = RNADataset('../../data/temp_train/', x_transform=x_transform, y_transform=y_transform)
-# test_set = RNADataset('../../data/temp_test/', x_transform=x_transform, y_transform=y_transform)
-# train_set = RNADataset('../data/less_than_40/train/')
-# test_set = RNADataset('../data/less_than_40/test/')
-# val_set = RNADataset('../data/less_than_40/val/')
-# train_set = RNADataset('../data/less_than_450/train/')
-# test_set = RNADataset('../data/less_than_450/test/')
-# val_set = RNADataset('../data/less_than_450/val/')
 n_train_samples = None if not opt.n_samples else int(opt.n_samples * 0.8)
 n_val_samples = None if not opt.n_samples else int(opt.n_samples * 0.1)
-train_set = RNADatasetSingleFile(opt.train_dataset, seq_max_len=opt.seq_max_len,
-                                 seq_min_len=opt.seq_min_len,
-                                 n_samples=n_train_samples)
+# train_set = RNADatasetSingleFile(opt.train_dataset, seq_max_len=opt.seq_max_len,
+#                                  seq_min_len=opt.seq_min_len,
+#                                  n_samples=n_train_samples)
+# # test_set = RNADatasetSingleFile(opt.test_dataset,
+# #                                 seq_max_len=opt.seq_max_len, seq_min_len=opt.seq_min_len,
+# #                                 n_samples=n_val_samples)
+# val_set = RNADatasetSingleFile(opt.val_dataset,
+#                                seq_max_len=opt.seq_max_len, seq_min_len=opt.seq_min_len,
+#                                n_samples=n_val_samples)
+
+# train_loader = torch.utils.data.DataLoader(train_set, batch_size=1, shuffle=True)
+# # test_loader = torch.utils.data.DataLoader(test_set, batch_size=opt.batch_size, shuffle=False,
+# #                                           collate_fn=my_collate_struct_to_seq)
+# val_loader = torch.utils.data.DataLoader(val_set, batch_size=1, shuffle=False)
+
+train_set = RNAGraphDataset(opt.train_dataset, seq_max_len=opt.seq_max_len,
+                            seq_min_len=opt.seq_min_len,
+                            n_samples=n_train_samples)
 # test_set = RNADatasetSingleFile(opt.test_dataset,
 #                                 seq_max_len=opt.seq_max_len, seq_min_len=opt.seq_min_len,
 #                                 n_samples=n_val_samples)
-val_set = RNADatasetSingleFile(opt.val_dataset,
-                               seq_max_len=opt.seq_max_len, seq_min_len=opt.seq_min_len,
-                               n_samples=n_val_samples)
-
-train_loader = torch.utils.data.DataLoader(train_set, batch_size=1, shuffle=True)
-# test_loader = torch.utils.data.DataLoader(test_set, batch_size=opt.batch_size, shuffle=False,
-#                                           collate_fn=my_collate_struct_to_seq)
-val_loader = torch.utils.data.DataLoader(val_set, batch_size=1, shuffle=False)
+val_set = RNAGraphDataset(opt.val_dataset, seq_max_len=opt.seq_max_len, seq_min_len=opt.seq_min_len,
+                          n_samples=n_val_samples)
+train_loader = DataLoader(train_set, batch_size=opt.batch_size, shuffle=True)
+# # test_loader = torch.utils.data.DataLoader(test_set, batch_size=opt.batch_size, shuffle=False,
+# #                                           collate_fn=my_collate_struct_to_seq)
+val_loader = DataLoader(val_set, batch_size=opt.batch_size, shuffle=False)
 
 
 def train_epoch(model, train_loader):
@@ -101,29 +107,14 @@ def train_epoch(model, train_loader):
     h_losses = []
     accuracies = []
 
-    for batch_idx, (sequences_strings, dot_brackets_strings) in enumerate(train_loader):
-        dot_bracket_string = dot_brackets_strings[0]
-        seq_string = sequences_strings[0]
-        sequence = prepare_sequence(seq_string, word_to_ix).to(opt.device)
-        dot_bracket = prepare_sequence(dot_bracket_string, tag_to_ix).to(opt.device)
+    for batch_idx, data in enumerate(train_loader):
+        data.x.to(opt.device)
+        data.edge_index.to(opt.device)
+        data.edge_attr.to(opt.device)
+        data.batch.to(opt.device)
+        dot_bracket = data.y.to(opt.device)
+        sequence = data.sequence.to(opt.device)
 
-        g = dotbracket_to_graph(dot_bracket_string)
-        degrees = [g.degree[i] for i in range(len(g))]
-        # Standardize features
-        degrees = scale(degrees)
-        x = torch.Tensor([degrees]).t().contiguous().to(opt.device)
-
-        edges = list(g.edges(data=True))
-        # One-hot encoding of the edge type
-        edge_attr = torch.Tensor([[0, 1] if e[2]['edge_type'] == 'adjacent' else [1, 0] for e in
-                                  edges]).to(opt.device)
-
-        edge_index = torch.LongTensor(list(g.edges())).t().contiguous().to(opt.device)
-        data = Data(x=x, edge_index=edge_index, edge_attr=edge_attr)
-
-        # # Skip last batch if it does not have full size
-        # if dot_brackets.shape[0] < opt.batch_size:
-        #     continue
         model.zero_grad()
 
         pred_sequences_scores = model(data)
@@ -135,12 +126,11 @@ def train_epoch(model, train_loader):
         optimizer.step()
 
         # Metrics are computed with respect to generated folding
-        avg_h_loss, avg_accuracy = compute_metrics(target_dot_brackets=[dot_bracket],
-                                                   input_sequences=[sequence],
-                                                   pred_sequences_scores=torch.unsqueeze(
-                                                       pred_sequences_scores, 0),
-                                                   sequences_lengths=[len(seq_string)],
-                                                   verbose=opt.verbose)
+        avg_h_loss, avg_accuracy = compute_metrics_graph(target_dot_brackets=dot_bracket,
+                                                         input_sequences=sequence,
+                                                         pred_sequences_scores=pred_sequences_scores,
+                                                         batch=data.batch,
+                                                         verbose=opt.verbose)
         h_losses.append(avg_h_loss)
         accuracies.append(avg_accuracy)
 
