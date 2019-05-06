@@ -207,6 +207,7 @@ def main():
     model_dir = '../models/{}/'.format(opt.model_name)
     os.makedirs(results_dir, exist_ok=True)
     os.makedirs(model_dir, exist_ok=True)
+    model.to(opt.device)
 
     with open(results_dir + 'hyperparams.txt', 'w') as f:
         f.write(str(opt))
