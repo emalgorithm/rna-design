@@ -63,20 +63,6 @@ y_transform = transforms.Lambda(lambda sequences: prepare_sequence(sequences, wo
 
 n_train_samples = None if not opt.n_samples else int(opt.n_samples * 0.8)
 n_val_samples = None if not opt.n_samples else int(opt.n_samples * 0.1)
-# train_set = RNADatasetSingleFile(opt.train_dataset, seq_max_len=opt.seq_max_len,
-#                                  seq_min_len=opt.seq_min_len,
-#                                  n_samples=n_train_samples)
-# # test_set = RNADatasetSingleFile(opt.test_dataset,
-# #                                 seq_max_len=opt.seq_max_len, seq_min_len=opt.seq_min_len,
-# #                                 n_samples=n_val_samples)
-# val_set = RNADatasetSingleFile(opt.val_dataset,
-#                                seq_max_len=opt.seq_max_len, seq_min_len=opt.seq_min_len,
-#                                n_samples=n_val_samples)
-
-# train_loader = torch.utils.data.DataLoader(train_set, batch_size=1, shuffle=True)
-# # test_loader = torch.utils.data.DataLoader(test_set, batch_size=opt.batch_size, shuffle=False,
-# #                                           collate_fn=my_collate_struct_to_seq)
-# val_loader = torch.utils.data.DataLoader(val_set, batch_size=1, shuffle=False)
 
 train_set = RNAGraphDataset(opt.train_dataset, seq_max_len=opt.seq_max_len,
                             seq_min_len=opt.seq_min_len,
