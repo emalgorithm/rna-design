@@ -42,6 +42,9 @@ parser.add_argument('--dropout', type=float, default=0, help='Amount of dropout'
 parser.add_argument('--early_stopping', type=int, default=30, help='Number of epochs for early '
                                                                    'stopping')
 parser.add_argument('--verbose', type=bool, default=False, help='Verbosity')
+parser.add_argument('--evaluate_training', type=bool, default=False, help='Wheter to evaluate '
+                                                                          'training results each '
+                                                                          'epoch')
 parser.add_argument('--train_dataset', type=str,
                     default='../data/folding_train.pkl', help='Path to training dataset')
 parser.add_argument('--val_dataset', type=str,
@@ -105,13 +108,14 @@ def train_epoch(model, train_loader):
         optimizer.step()
 
         # Metrics are computed with respect to generated folding
-        avg_h_loss, avg_accuracy = compute_metrics_graph(target_dot_brackets=dot_bracket,
-                                                         input_sequences=sequence,
-                                                         pred_sequences_scores=pred_sequences_scores,
-                                                         batch=data.batch,
-                                                         verbose=opt.verbose)
-        h_losses.append(avg_h_loss)
-        accuracies.append(avg_accuracy)
+        if opt.evaluate_training:
+            avg_h_loss, avg_accuracy = compute_metrics_graph(target_dot_brackets=dot_bracket,
+                                                             input_sequences=sequence,
+                                                             pred_sequences_scores=pred_sequences_scores,
+                                                             batch=data.batch,
+                                                             verbose=opt.verbose)
+            h_losses.append(avg_h_loss)
+            accuracies.append(avg_accuracy)
 
     avg_loss = np.mean(losses)
     avg_h_loss = np.mean(h_losses)
