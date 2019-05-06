@@ -53,7 +53,7 @@ print(opt)
 n_features = 1
 n_classes = len(word_to_ix)
 model = GCN(n_features, hidden_dim=opt.hidden_dim, n_classes=n_classes, n_conv_layers=opt.n_conv_layers,
-            dropout=opt.dropout, device=opt.device).to(opt.device)
+            dropout=opt.dropout).to(opt.device)
 loss_function = nn.NLLLoss(ignore_index=word_to_ix['<PAD>'])
 optimizer = optim.Adam(model.parameters(), lr=opt.learning_rate)
 
@@ -207,7 +207,6 @@ def main():
     model_dir = '../models/{}/'.format(opt.model_name)
     os.makedirs(results_dir, exist_ok=True)
     os.makedirs(model_dir, exist_ok=True)
-    model.to(opt.device)
 
     with open(results_dir + 'hyperparams.txt', 'w') as f:
         f.write(str(opt))
