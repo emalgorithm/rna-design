@@ -99,10 +99,10 @@ def train_epoch(model, train_loader):
     accuracies = []
 
     for batch_idx, data in enumerate(train_loader):
-        data.x.to(opt.device)
-        data.edge_index.to(opt.device)
-        data.edge_attr.to(opt.device)
-        data.batch.to(opt.device)
+        data.x = data.x.to(opt.device)
+        data.edge_index = data.edge_index.to(opt.device)
+        data.edge_attr = data.edge_attr.to(opt.device)
+        data.batch = data.batch.to(opt.device)
         dot_bracket = data.y.to(opt.device)
         sequence = data.sequence.to(opt.device)
 

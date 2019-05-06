@@ -179,10 +179,10 @@ def evaluate_struct_to_seq_graph(model, test_loader, loss_function, batch_size=N
         accuracies = []
 
         for batch_idx, data in enumerate(test_loader):
-            data.x.to(device)
-            data.edge_index.to(device)
-            data.edge_attr.to(device)
-            data.batch.to(device)
+            data.x = data.x.to(device)
+            data.edge_index = data.edge_index.to(device)
+            data.edge_attr = data.edge_attr.to(device)
+            data.batch = data.batch.to(device)
             dot_bracket = data.y.to(device)
             sequence = data.sequence.to(device)
 
