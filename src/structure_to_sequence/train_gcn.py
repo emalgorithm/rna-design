@@ -39,6 +39,8 @@ parser.add_argument('--seq_min_len', type=int, default=1, help='Maximum length o
 parser.add_argument('--n_conv_layers', type=int, default=3, help='Number of convolutional layers')
 parser.add_argument('--conv_type', type=str, default="MPNN", help='Type of convolutional layers')
 parser.add_argument('--dropout', type=float, default=0, help='Amount of dropout')
+parser.add_argument('--early_stopping', type=int, default=30, help='Number of epochs for early '
+                                                                   'stopping')
 parser.add_argument('--verbose', type=bool, default=False, help='Verbosity')
 parser.add_argument('--train_dataset', type=str,
                     default='../data/folding_train.pkl', help='Path to training dataset')
@@ -155,7 +157,7 @@ def run(model, n_epochs, train_loader, results_dir, model_dir):
         end = time.time()
         print("Epoch took {0:.2f} seconds".format(end - start))
 
-        if not val_accuracies or val_accuracy > max(val_accuracies):
+        if not val_h_losses or val_h_loss > max(val_h_losses):
             torch.save(model.state_dict(), model_dir + 'model.pt')
             print("Saved updated model")
 
@@ -186,6 +188,14 @@ def run(model, n_epochs, train_loader, results_dir, model_dir):
             'val_accuracies': val_accuracies,
             # 'test_accuracies': test_accuracies
         }, open(results_dir + 'scores.pkl', 'wb'))
+
+        if len(val_h_losses) > opt.early_stopping and min(val_h_losses[-opt.early_stopping:]) > \
+                min(val_h_losses):
+            print("Training terminated because of early stopping")
+            print("Best val_loss: {}".format(min(val_losses)))
+            print("Best val_h_loss: {}".format(min(val_h_losses)))
+            print("Best val_accuracy: {}".format(max(val_accuracies)))
+            break
 
 
 def main():
