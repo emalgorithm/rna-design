@@ -42,11 +42,11 @@ parser.add_argument('--lstm_layers', type=int, default=2, help='Number of layers
 parser.add_argument('--dropout', type=float, default=0, help='Amount of dropout')
 parser.add_argument('--verbose', type=bool, default=False, help='Verbosity')
 parser.add_argument('--train_dataset', type=str,
-                    default='../data/sequences_with_folding_train.pkl', help='Path to training dataset')
+                    default='../data/folding_train.pkl', help='Path to training dataset')
 parser.add_argument('--val_dataset', type=str,
-                    default='../data/sequences_with_folding_val.pkl', help='Path to val dataset')
+                    default='../data/folding_val.pkl', help='Path to val dataset')
 parser.add_argument('--test_dataset', type=str,
-                    default='../data/sequences_with_folding_test.pkl', help='Path to test dataset')
+                    default='../data/folding_test.pkl', help='Path to test dataset')
 
 opt = parser.parse_args()
 print(opt)
