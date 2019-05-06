@@ -131,20 +131,26 @@ def train_epoch(model, train_loader):
 def run(model, n_epochs, train_loader, results_dir, model_dir):
     print("The model contains {} parameters".format(sum(p.numel() for p in model.parameters() if p.requires_grad)))
 
-    loss, h_loss, accuracy = evaluate_struct_to_seq_graph(model, train_loader, loss_function,
-                                                    opt.batch_size, mode='train',
-                                                    device=opt.device, verbose=opt.verbose)
+    if opt.evaluate_training:
+        loss, h_loss, accuracy = evaluate_struct_to_seq_graph(model, train_loader, loss_function,
+                                                        opt.batch_size, mode='train',
+                                                        device=opt.device, verbose=opt.verbose)
+        train_losses = [loss]
+        train_h_losses = [h_loss]
+        train_accuracies = [accuracy]
+    else:
+        train_losses = []
+        train_h_losses = []
+        train_accuracies = []
+
     val_loss, val_h_loss, val_accuracy = evaluate_struct_to_seq_graph(model, val_loader, loss_function,
                                                                 opt.batch_size, mode='val',
                                                                 device=opt.device, verbose=opt.verbose)
 
-    train_losses = [loss]
     # test_losses = []
     val_losses = [val_loss]
-    train_h_losses = [h_loss]
     # test_h_losses = []
     val_h_losses = [val_h_loss]
-    train_accuracies = [accuracy]
     # test_accuracies = []
     val_accuracies = [val_accuracy]
 
