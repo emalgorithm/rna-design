@@ -2,32 +2,23 @@ import os
 import sys
 sys.path.append(os.getcwd().split('src')[0])
 
-from src.data_util.data_processing import prepare_sequence, my_collate_seq_to_struct, \
-    my_collate_struct_to_seq
-from src.lstm.lstm_model import LSTMModel
 import torch
 import torch.nn as nn
 import torch.optim as optim
-from src.data_util.rna_dataset import RNADataset
-from src.data_util.rna_dataset_single_file import RNADatasetSingleFile
-from src.data_util.rna_graph_dataset import RNAGraphDataset
-from torchvision import transforms
-from src.visualization_util import plot_loss
-from src.data_util.data_constants import word_to_ix, tag_to_ix
-from src.evaluation import masked_hamming_loss, compute_accuracy, evaluate, \
-    evaluate_struct_to_seq, compute_metrics, compute_metrics_graph
 import pickle
 import os
 import time
 import argparse
 import numpy as np
-import networkx as nx
-from src.gcn.gcn_util import sparse_mx_to_torch_sparse_tensor
-from src.util import dotbracket_to_graph
-from src.gcn.gcn import GCN
-from sklearn.preprocessing import scale
+from torch_geometric.data import DataLoader
+from torchvision import transforms
 
-from torch_geometric.data import Data, DataLoader
+from src.data_util.data_processing import prepare_sequence
+from src.gcn.gcn import GCN
+from src.data_util.rna_graph_dataset import RNAGraphDataset
+from src.visualization_util import plot_loss
+from src.data_util.data_constants import word_to_ix, tag_to_ix
+from src.evaluation import compute_metrics_graph, evaluate_struct_to_seq_graph
 
 torch.manual_seed(0)
 np.random.seed(0)
@@ -148,67 +139,67 @@ def train_epoch(model, train_loader):
 def run(model, n_epochs, train_loader, results_dir, model_dir):
     print("The model contains {} parameters".format(sum(p.numel() for p in model.parameters() if p.requires_grad)))
 
-    # loss, h_loss, accuracy = evaluate_struct_to_seq(model, train_loader, loss_function,
-    #                                                 opt.batch_size, mode='train',
-    #                                                 device=opt.device, verbose=opt.verbose)
-    # val_loss, val_h_loss, val_accuracy = evaluate_struct_to_seq(model, val_loader, loss_function,
-    #                                                             opt.batch_size, mode='val',
-    #                                                             device=opt.device, verbose=opt.verbose)
-    #
-    # train_losses = [loss]
-    # # test_losses = []
-    # val_losses = [val_loss]
-    # train_h_losses = [h_loss]
-    # # test_h_losses = []
-    # val_h_losses = [val_h_loss]
-    # train_accuracies = [accuracy]
-    # # test_accuracies = []
-    # val_accuracies = [val_accuracy]
+    loss, h_loss, accuracy = evaluate_struct_to_seq_graph(model, train_loader, loss_function,
+                                                    opt.batch_size, mode='train',
+                                                    device=opt.device, verbose=opt.verbose)
+    val_loss, val_h_loss, val_accuracy = evaluate_struct_to_seq_graph(model, val_loader, loss_function,
+                                                                opt.batch_size, mode='val',
+                                                                device=opt.device, verbose=opt.verbose)
+
+    train_losses = [loss]
+    # test_losses = []
+    val_losses = [val_loss]
+    train_h_losses = [h_loss]
+    # test_h_losses = []
+    val_h_losses = [val_h_loss]
+    train_accuracies = [accuracy]
+    # test_accuracies = []
+    val_accuracies = [val_accuracy]
 
     for epoch in range(n_epochs):
         start = time.time()
         print("Epoch {}: ".format(epoch + 1))
 
         loss, h_loss, accuracy = train_epoch(model, train_loader)
-        # test_loss, test_h_loss, test_accuracy = evaluate_struct_to_seq(model, test_loader, loss_function,
-        #                                                  batch_size, mode='test', device=opt.device)
-        # val_loss, val_h_loss, val_accuracy = evaluate_struct_to_seq(model, val_loader, loss_function,
-        #                                               opt.batch_size, mode='val',
-        #                                                             device=opt.device, verbose=opt.verbose)
+        # test_loss, test_h_loss, test_accuracy = evaluate_struct_to_seq_graph(model, test_loader,
+        #                                                                      loss_function, mode='test', device=opt.device)
+        val_loss, val_h_loss, val_accuracy = evaluate_struct_to_seq_graph(model, val_loader,
+                                                                          loss_function, mode='val',
+                                                                    device=opt.device, verbose=opt.verbose)
         end = time.time()
         print("Epoch took {0:.2f} seconds".format(end - start))
 
-        # if not val_accuracies or val_accuracy > max(val_accuracies):
-        #     torch.save(model.state_dict(), model_dir + 'model.pt')
-        #     print("Saved updated model")
+        if not val_accuracies or val_accuracy > max(val_accuracies):
+            torch.save(model.state_dict(), model_dir + 'model.pt')
+            print("Saved updated model")
 
-        # train_losses.append(loss)
-        # # test_losses.append(test_loss)
-        # val_losses.append(val_loss)
-        # train_h_losses.append(h_loss)
-        # # test_h_losses.append(test_h_loss)
-        # val_h_losses.append(val_h_loss)
-        # train_accuracies.append(accuracy)
-        # # test_accuracies.append(test_accuracy)
-        # val_accuracies.append(val_accuracy)
-        #
-        # plot_loss(train_losses, val_losses, file_name=results_dir + 'loss.jpg')
-        # plot_loss(train_h_losses, val_h_losses, file_name=results_dir + 'h_loss.jpg',
-        #           y_label='hamming_loss')
-        # plot_loss(train_accuracies, val_accuracies, file_name=results_dir + 'acc.jpg',
-        #           y_label='accuracy')
-        #
-        # pickle.dump({
-        #     'train_losses': train_losses,
-        #     'val_losses': val_losses,
-        #     # 'test_losses': test_losses,
-        #     'train_h_losses': train_h_losses,
-        #     'val_h_losses': val_h_losses,
-        #     # 'test_h_losses': test_h_losses,
-        #     'train_accuracies': train_accuracies,
-        #     'val_accuracies': val_accuracies,
-        #     # 'test_accuracies': test_accuracies
-        # }, open(results_dir + 'scores.pkl', 'wb'))
+        train_losses.append(loss)
+        # test_losses.append(test_loss)
+        val_losses.append(val_loss)
+        train_h_losses.append(h_loss)
+        # test_h_losses.append(test_h_loss)
+        val_h_losses.append(val_h_loss)
+        train_accuracies.append(accuracy)
+        # test_accuracies.append(test_accuracy)
+        val_accuracies.append(val_accuracy)
+
+        plot_loss(train_losses, val_losses, file_name=results_dir + 'loss.jpg')
+        plot_loss(train_h_losses, val_h_losses, file_name=results_dir + 'h_loss.jpg',
+                  y_label='hamming_loss')
+        plot_loss(train_accuracies, val_accuracies, file_name=results_dir + 'acc.jpg',
+                  y_label='accuracy')
+
+        pickle.dump({
+            'train_losses': train_losses,
+            'val_losses': val_losses,
+            # 'test_losses': test_losses,
+            'train_h_losses': train_h_losses,
+            'val_h_losses': val_h_losses,
+            # 'test_h_losses': test_h_losses,
+            'train_accuracies': train_accuracies,
+            'val_accuracies': val_accuracies,
+            # 'test_accuracies': test_accuracies
+        }, open(results_dir + 'scores.pkl', 'wb'))
 
 
 def main():
