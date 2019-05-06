@@ -131,7 +131,7 @@ def evaluate(model, test_loader, loss_function, batch_size, mode='test', device=
 
 
 def evaluate_struct_to_seq(model, test_loader, loss_function, batch_size, mode='test',
-                           device='cpu', verbose=False, graph=False):
+                           device='cpu', verbose=False):
     model.eval()
     with torch.no_grad():
         losses = []
@@ -156,6 +156,45 @@ def evaluate_struct_to_seq(model, test_loader, loss_function, batch_size, mode='
                                                        pred_sequences_scores=base_scores,
                                                        sequences_lengths=sequences_lengths,
                                                        verbose=verbose)
+            h_losses.append(avg_h_loss)
+            accuracies.append(avg_accuracy)
+
+        avg_loss = np.mean(losses)
+        avg_h_loss = np.mean(h_losses)
+        avg_accuracy = np.mean(accuracies)
+
+        print("{} loss: {}".format(mode, avg_loss))
+        print("{} hamming loss: {}".format(mode, avg_h_loss))
+        print("{} accuracy: {}".format(mode, avg_accuracy))
+
+        return avg_loss, avg_h_loss, avg_accuracy
+
+
+def evaluate_struct_to_seq_graph(model, test_loader, loss_function, batch_size=None, mode='test',
+                                 device='cpu', verbose=False):
+    model.eval()
+    with torch.no_grad():
+        losses = []
+        h_losses = []
+        accuracies = []
+
+        for batch_idx, data in enumerate(test_loader):
+            data.x.to(device)
+            data.edge_index.to(device)
+            data.edge_attr.to(device)
+            data.batch.to(device)
+            dot_bracket = data.y.to(device)
+            sequence = data.sequence.to(device)
+
+            pred_sequences_scores = model(data)
+
+            losses.append(loss_function(pred_sequences_scores, sequence))
+            # Metrics are computed with respect to generated folding
+            avg_h_loss, avg_accuracy = compute_metrics_graph(target_dot_brackets=dot_bracket,
+                                                             input_sequences=sequence,
+                                                             pred_sequences_scores=pred_sequences_scores,
+                                                             batch=data.batch,
+                                                             verbose=verbose)
             h_losses.append(avg_h_loss)
             accuracies.append(avg_accuracy)
 
