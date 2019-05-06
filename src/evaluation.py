@@ -188,7 +188,7 @@ def evaluate_struct_to_seq_graph(model, test_loader, loss_function, batch_size=N
 
             pred_sequences_scores = model(data)
 
-            losses.append(loss_function(pred_sequences_scores, sequence))
+            losses.append(loss_function(pred_sequences_scores, sequence).item())
             # Metrics are computed with respect to generated folding
             avg_h_loss, avg_accuracy = compute_metrics_graph(target_dot_brackets=dot_bracket,
                                                              input_sequences=sequence,
