@@ -29,6 +29,9 @@ parser.add_argument("--b2", type=float, default=0.999, help="adam: decay of firs
 parser.add_argument('--weight_clipping', dest='weight_clipping', action='store_true')
 parser.add_argument('--no_weight_clipping', dest='weight_clipping', action='store_false')
 parser.set_defaults(weight_clipping=True)
+parser.add_argument('--batch_norm', dest='batch_norm', action='store_true')
+parser.add_argument('--no_batch_norm', dest='batch_norm', action='store_false')
+parser.set_defaults(batch_norm=True)
 parser.add_argument("--n_cpu", type=int, default=8, help="number of cpu threads to use during batch generation")
 parser.add_argument("--sample_interval", type=int, default=400, help="interval betwen image samples")
 parser.add_argument('--model_name', default="test10", help='model name')
@@ -69,10 +72,10 @@ n_features = 1 + random_features
 n_classes = len(word_to_ix)
 # Initialize generator and discriminator
 generator = GCN(n_features, hidden_dim=opt.hidden_dim, n_classes=n_classes, n_conv_layers=opt.n_conv_layers,
-                dropout=opt.dropout, softmax=True).to(opt.device)
+                dropout=opt.dropout, softmax=True, batch_norm=opt.batch_norm).to(opt.device)
 discriminator = GCN(len(word_to_ix), hidden_dim=opt.hidden_dim, n_classes=1,
                     n_conv_layers=opt.n_conv_layers, dropout=opt.dropout,
-                    node_classification=False, probability=probability).to(opt.device)
+                    node_classification=False, probability=probability, batch_norm=opt.batch_norm).to(opt.device)
 
 if opt.gan_type == "gan":
     gan = GAN(generator, discriminator, opt.learning_rate, opt.device)

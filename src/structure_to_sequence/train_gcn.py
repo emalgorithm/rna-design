@@ -39,6 +39,9 @@ parser.add_argument('--seq_min_len', type=int, default=1, help='Maximum length o
 parser.add_argument('--n_conv_layers', type=int, default=3, help='Number of convolutional layers')
 parser.add_argument('--conv_type', type=str, default="MPNN", help='Type of convolutional layers')
 parser.add_argument('--dropout', type=float, default=0, help='Amount of dropout')
+parser.add_argument('--batch_norm', dest='batch_norm', action='store_true')
+parser.add_argument('--no_batch_norm', dest='batch_norm', action='store_false')
+parser.set_defaults(batch_norm=True)
 parser.add_argument('--early_stopping', type=int, default=30, help='Number of epochs for early '
                                                                    'stopping')
 parser.add_argument('--verbose', type=bool, default=False, help='Verbosity')
@@ -58,7 +61,7 @@ print(opt)
 n_features = 1
 n_classes = len(word_to_ix)
 model = GCN(n_features, hidden_dim=opt.hidden_dim, n_classes=n_classes, n_conv_layers=opt.n_conv_layers,
-            dropout=opt.dropout).to(opt.device)
+            dropout=opt.dropout, batch_norm=opt.batch_norm).to(opt.device)
 loss_function = nn.NLLLoss(ignore_index=word_to_ix['<PAD>'])
 optimizer = optim.Adam(model.parameters(), lr=opt.learning_rate)
 
