@@ -5,7 +5,8 @@ from src.data_util.data_constants import word_to_ix
 
 
 class WGAN:
-    def __init__(self, generator, discriminator, lr=0.00005, clip_value=0.01, n_critic=5, device="cpu"):
+    def __init__(self, generator, discriminator, lr=0.00005, clip_value=0.01, n_critic=5,
+                 device="cpu", weight_clipping=True):
         self.generator = generator
         self.discriminator = discriminator
 
@@ -17,6 +18,7 @@ class WGAN:
         self.device = device
         self.i = 0
         self.n_critic = n_critic
+        self.weight_clipping = weight_clipping
 
     def train(self, data):
         g_loss = torch.Tensor([-10000]).to(self.device)
@@ -43,8 +45,9 @@ class WGAN:
         self.optimizer_D.step()
 
         # Clip weights of discriminator
-        for p in self.discriminator.parameters():
-            p.data.clamp_(-self.clip_value, self.clip_value)
+        if self.weight_clipping:
+            for p in self.discriminator.parameters():
+                p.data.clamp_(-self.clip_value, self.clip_value)
 
         # Train the generator every n_critic iterations
         if self.i % self.n_critic == 0:

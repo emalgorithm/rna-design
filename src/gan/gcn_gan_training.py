@@ -26,6 +26,8 @@ np.random.seed(0)
 parser = argparse.ArgumentParser()
 parser.add_argument("--b1", type=float, default=0.5, help="adam: decay of first order momentum of gradient")
 parser.add_argument("--b2", type=float, default=0.999, help="adam: decay of first order momentum of gradient")
+parser.add_argument("--weight_clipping", type=bool, default=True, help="adam: decay of first "
+                                                                        "order momentum of gradient")
 parser.add_argument("--n_cpu", type=int, default=8, help="number of cpu threads to use during batch generation")
 parser.add_argument("--sample_interval", type=int, default=400, help="interval betwen image samples")
 parser.add_argument('--model_name', default="test10", help='model name')
@@ -74,7 +76,7 @@ discriminator = GCN(len(word_to_ix), hidden_dim=opt.hidden_dim, n_classes=1,
 if opt.gan_type == "gan":
     gan = GAN(generator, discriminator, opt.learning_rate, opt.device)
 elif opt.gan_type == "wgan":
-    gan = WGAN(generator, discriminator, device=opt.device)
+    gan = WGAN(generator, discriminator, device=opt.device, weight_clipping=opt.weight_clipping)
 
 
 # Data Loading

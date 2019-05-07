@@ -66,7 +66,7 @@ def seq_to_one_hot(seq, n_classes):
     :return:
     """
     emb = torch.nn.Embedding(n_classes, n_classes).to(seq.device)
-    emb.weight.data = torch.eye(n_classes)
+    emb.weight.data = torch.eye(n_classes).to(seq.device)
 
     return emb(seq)
 
