@@ -58,3 +58,16 @@ def my_collate_struct_to_seq(batch):
     return [sequences, targets, sequences_lengths]
 
 
+def seq_to_one_hot(seq, n_classes):
+    """
+    Convert pytorch sequence (1D tensor) into a one hot embedding of size [len(seq), n_classes]
+    :param seq:
+    :param n_classes:
+    :return:
+    """
+    emb = torch.nn.Embedding(n_classes, n_classes)
+    emb.weight.data = torch.eye(n_classes)
+
+    return emb(seq)
+
+
