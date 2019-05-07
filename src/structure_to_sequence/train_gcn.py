@@ -63,9 +63,6 @@ loss_function = nn.NLLLoss(ignore_index=word_to_ix['<PAD>'])
 optimizer = optim.Adam(model.parameters(), lr=opt.learning_rate)
 
 # Data Loading
-x_transform = transforms.Lambda(lambda sequences: prepare_sequence(sequences, tag_to_ix))
-y_transform = transforms.Lambda(lambda sequences: prepare_sequence(sequences, word_to_ix))
-
 n_train_samples = None if not opt.n_samples else int(opt.n_samples * 0.8)
 n_val_samples = None if not opt.n_samples else int(opt.n_samples * 0.1)
 
