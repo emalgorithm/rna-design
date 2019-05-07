@@ -1,12 +1,12 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from torch_geometric.nn import GCNConv, NNConv, GINConv, GATConv, global_add_pool
+from torch_geometric.nn import GCNConv, NNConv, GINConv, GATConv, global_add_pool, Set2Set
 
 
 class GCN(nn.Module):
     def __init__(self, n_features, hidden_dim, n_classes, n_conv_layers=3, dropout=0,
-                 conv_type="MPNN", node_classification=True):
+                 conv_type="MPNN", node_classification=True, softmax=False, probability=True):
         super(GCN, self).__init__()
         self.convs = nn.ModuleList()
 
@@ -23,6 +23,12 @@ class GCN(nn.Module):
         self.dropout = dropout
         self.conv_type = conv_type
         self.node_classification = node_classification
+        self.softmax = softmax
+        self.probability = probability
+
+        if not self.node_classification:
+            self.fc = nn.Linear(2 * hidden_dim, n_classes)
+            self.pooling = Set2Set(hidden_dim, 10)
 
     def forward(self, data):
         x, adj, edge_attr, batch = data.x, data.edge_index, data.edge_attr, data.batch
@@ -33,14 +39,17 @@ class GCN(nn.Module):
             x = F.dropout(x, self.dropout, training=self.training)
 
         if not self.node_classification:
-            x = global_add_pool(x, batch)
+            x = self.pooling(x, batch)
 
         x = self.fc(x)
 
         if not self.node_classification:
-            return torch.sigmoid(x)
+            if self.probability:
+                return torch.sigmoid(x)
+            else:
+                return x
 
-        return F.log_softmax(x, dim=1)
+        return F.log_softmax(x, dim=1) if not self.softmax else F.softmax(x, dim=1)
 
     @staticmethod
     def get_conv_layer(n_input_features, n_output_features, conv_type="GCN"):
