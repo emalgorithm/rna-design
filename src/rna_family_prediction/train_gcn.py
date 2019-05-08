@@ -26,6 +26,8 @@ parser.add_argument('--model_name', default="test", help='model name')
 parser.add_argument('--device', default="cpu", help='cpu or cuda')
 parser.add_argument('--n_samples', type=int, default=None, help='Number of samples to train on')
 parser.add_argument('--n_epochs', type=int, default=10000, help='Number of samples to train on')
+parser.add_argument('--embedding_dim', type=int, default=20, help='Dimension of nucleotide '
+                                                                  'embeddings')
 parser.add_argument('--hidden_dim', type=int, default=20, help='Dimension of hidden '
                                                                 'representations of convolutional layers')
 parser.add_argument('--batch_size', type=int, default=64, help='Batch size')
@@ -57,11 +59,11 @@ parser.add_argument('--foldings_dataset', type=str,
 opt = parser.parse_args()
 print(opt)
 
-n_features = 20
 n_classes = len(families)
-model = GCN(n_features, hidden_dim=opt.hidden_dim, n_classes=n_classes, n_conv_layers=opt.n_conv_layers,
+model = GCN(n_features=opt.embedding_dim, hidden_dim=opt.hidden_dim, n_classes=n_classes,
+            n_conv_layers=opt.n_conv_layers,
             dropout=opt.dropout, batch_norm=opt.batch_norm, num_embeddings=len(word_to_ix),
-            embedding_dim=n_features,
+            embedding_dim=opt.embedding_dim,
             node_classification=False).to(opt.device)
 
 loss_function = nn.NLLLoss()
