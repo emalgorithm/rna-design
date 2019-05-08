@@ -166,7 +166,7 @@ def run(model, n_epochs, train_loader, results_dir, model_dir):
 
 
 def main():
-    results_dir = '../results/{}/'.format(opt.model_name)
+    results_dir = '../results_family_classification/{}/'.format(opt.model_name)
     model_dir = '../models/{}/'.format(opt.model_name)
     os.makedirs(results_dir, exist_ok=True)
     os.makedirs(model_dir, exist_ok=True)
