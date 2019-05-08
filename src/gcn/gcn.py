@@ -30,7 +30,7 @@ class GCN(nn.Module):
         # If we are interested in graph classification, we introduce the final pooling and change
         # the fc layer to have dimensions compatible with the output of the Set2Set model
         if not node_classification:
-            self.fc = nn.Linear(hidden_dim, n_classes)
+            self.fc = nn.Linear(2 * hidden_dim, n_classes)
             self.pooling = Set2Set(hidden_dim, 10)
 
         self.dropout = dropout
@@ -56,8 +56,8 @@ class GCN(nn.Module):
 
         # If we are interested in graph classification, apply graph-wise pooling
         if not self.node_classification:
-            x = global_add_pool(x, batch)
-            # x = self.pooling(x, batch)
+            # x = global_add_pool(x, batch)
+            x = self.pooling(x, batch)
 
         x = self.fc(x)
 
