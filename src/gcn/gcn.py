@@ -33,7 +33,8 @@ class GCN(nn.Module):
             self.fc = nn.Linear(2 * hidden_dim, n_classes)
             self.pooling = Set2Set(hidden_dim, 10)
 
-        self.dropout = dropout
+        self.dropout = nn.Dropout(dropout)
+
         self.conv_type = conv_type
         self.node_classification = node_classification
         self.softmax = softmax
@@ -47,13 +48,14 @@ class GCN(nn.Module):
 
         if self.num_embeddings:
             x = self.embedding(x)
+            x = self.dropout(x)
 
         # Apply graph convolutional layers
         for i, conv in enumerate(self.convs):
             x = self.apply_conv_layer(conv, x, adj, edge_attr, conv_type=self.conv_type)
             x = self.batch_norms[i](x) if self.batch_norm else x
             x = nn.functional.leaky_relu(x)
-            x = F.dropout(x, self.dropout, training=self.training)
+            x = self.dropout(x)
 
         # If we are interested in graph classification, apply graph-wise pooling
         if not self.node_classification:
@@ -61,6 +63,7 @@ class GCN(nn.Module):
                 x = self.pooling(x, batch)
             else:
                 x = global_add_pool(x, batch)
+            x = self.dropout(x)
 
         x = self.fc(x)
 
