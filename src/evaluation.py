@@ -4,6 +4,7 @@ import torch
 import RNA
 from src.data_util.data_processing import one_hot_embed_sequence, prepare_sequences, decode_sequence
 from src.data_util.data_constants import word_to_ix, tag_to_ix, ix_to_word, ix_to_tag
+from sklearn.metrics import accuracy_score, f1_score, precision_score
 
 
 def masked_hamming_loss(target, pred, ignore_idx=0):
@@ -215,3 +216,43 @@ def evaluate_struct_to_seq_graph(model, test_loader, loss_function=None, batch_s
         print("{} accuracy: {}".format(mode, avg_accuracy))
 
         return avg_loss, avg_h_loss, avg_accuracy
+
+
+def evaluate_family_classifier(model, test_loader, loss_function=None, batch_size=None,
+                                 mode='test', device='cpu', verbose=False):
+    model.eval()
+    with torch.no_grad():
+        losses = []
+        accuracies = []
+
+        for batch_idx, data in enumerate(test_loader):
+            data.x = data.x.to(device)
+            data.edge_index = data.edge_index.to(device)
+            data.edge_attr = data.edge_attr.to(device)
+            data.batch = data.batch.to(device)
+            data.y = data.y.to(device)
+
+            out = model(data)
+
+            # Loss is computed with respect to the target sequence
+            loss = loss_function(out, data.y)
+            losses.append(loss.item())
+
+            pred = out.max(1)[1]
+            accuracy = compute_metrics_family(data.y, pred)
+
+            accuracies.append(accuracy)
+
+        avg_loss = np.mean(losses)
+        avg_accuracy = np.mean(accuracies)
+
+        print("{} loss: {}".format(mode, avg_loss))
+        print("{} accuracy: {}".format(mode, avg_accuracy))
+
+        return avg_loss, avg_accuracy
+
+
+def compute_metrics_family(target, pred):
+    accuracy = accuracy_score(target, pred)
+
+    return accuracy
