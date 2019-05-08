@@ -6,8 +6,8 @@ from torch_geometric.nn import GCNConv, NNConv, GINConv, GATConv, global_add_poo
 
 class GCN(nn.Module):
     def __init__(self, n_features, hidden_dim, n_classes, n_conv_layers=3, dropout=0,
-                 conv_type="MPNN", node_classification=True, softmax=False, probability=True,
-                 batch_norm=True, num_embeddings=None, embedding_dim=20):
+                 conv_type="MPNN", set2set_pooling=False, node_classification=True, softmax=False,
+                 probability=True, batch_norm=True, num_embeddings=None, embedding_dim=20):
         super(GCN, self).__init__()
         if num_embeddings:
             self.embedding = nn.Embedding(num_embeddings=num_embeddings, embedding_dim=embedding_dim)
@@ -29,7 +29,7 @@ class GCN(nn.Module):
 
         # If we are interested in graph classification, we introduce the final pooling and change
         # the fc layer to have dimensions compatible with the output of the Set2Set model
-        if not node_classification:
+        if not set2set_pooling:
             self.fc = nn.Linear(2 * hidden_dim, n_classes)
             self.pooling = Set2Set(hidden_dim, 10)
 
@@ -40,6 +40,7 @@ class GCN(nn.Module):
         self.probability = probability
         self.batch_norm = batch_norm
         self.num_embeddings = num_embeddings
+        self.set2set_pooling = set2set_pooling
 
     def forward(self, data):
         x, adj, edge_attr, batch = data.x, data.edge_index, data.edge_attr, data.batch
@@ -56,8 +57,10 @@ class GCN(nn.Module):
 
         # If we are interested in graph classification, apply graph-wise pooling
         if not self.node_classification:
-            # x = global_add_pool(x, batch)
-            x = self.pooling(x, batch)
+            if self.set2set_pooling:
+                x = self.pooling(x, batch)
+            else:
+                x = global_add_pool(x, batch)
 
         x = self.fc(x)
 
