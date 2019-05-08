@@ -256,4 +256,4 @@ def compute_metrics_family(target, pred):
     # accuracy = accuracy_score(target, pred)
     accuracy = (target.eq(pred.long())).sum() / target.shape[0]
 
-    return accuracy
+    return accuracy.item()
