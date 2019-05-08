@@ -7,8 +7,11 @@ from torch_geometric.nn import GCNConv, NNConv, GINConv, GATConv, global_add_poo
 class GCN(nn.Module):
     def __init__(self, n_features, hidden_dim, n_classes, n_conv_layers=3, dropout=0,
                  conv_type="MPNN", node_classification=True, softmax=False, probability=True,
-                 batch_norm=True):
+                 batch_norm=True, num_embeddings=None, embedding_dim=20):
         super(GCN, self).__init__()
+        if num_embeddings:
+            self.embedding = nn.Embedding(num_embeddings=num_embeddings, embedding_dim=embedding_dim)
+
         self.convs = nn.ModuleList()
         self.batch_norms = nn.ModuleList()
 
@@ -27,7 +30,7 @@ class GCN(nn.Module):
         # If we are interested in graph classification, we introduce the final pooling and change
         # the fc layer to have dimensions compatible with the output of the Set2Set model
         if not node_classification:
-            self.fc = nn.Linear(2 * hidden_dim, n_classes)
+            self.fc = nn.Linear(hidden_dim, n_classes)
             self.pooling = Set2Set(hidden_dim, 10)
 
         self.dropout = dropout
@@ -36,28 +39,33 @@ class GCN(nn.Module):
         self.softmax = softmax
         self.probability = probability
         self.batch_norm = batch_norm
+        self.num_embeddings = num_embeddings
 
     def forward(self, data):
         x, adj, edge_attr, batch = data.x, data.edge_index, data.edge_attr, data.batch
+
+        if self.num_embeddings:
+            x = self.embedding(x)
 
         # Apply graph convolutional layers
         for i, conv in enumerate(self.convs):
             x = self.apply_conv_layer(conv, x, adj, edge_attr, conv_type=self.conv_type)
             x = self.batch_norms[i](x) if self.batch_norm else x
-            x = F.relu(x)
+            x = nn.functional.leaky_relu(x)
             x = F.dropout(x, self.dropout, training=self.training)
 
         # If we are interested in graph classification, apply graph-wise pooling
         if not self.node_classification:
-            x = self.pooling(x, batch)
+            x = global_add_pool(x, batch)
+            # x = self.pooling(x, batch)
 
         x = self.fc(x)
 
-        if not self.node_classification:
-            if self.probability:
-                return torch.sigmoid(x)
-            else:
-                return x
+        # if not self.node_classification:
+        #     if self.probability:
+        #         return torch.sigmoid(x)
+        #     else:
+        #         return x
 
         return F.log_softmax(x, dim=1) if not self.softmax else F.softmax(x, dim=1)
 
