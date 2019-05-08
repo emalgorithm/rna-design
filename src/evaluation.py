@@ -254,6 +254,6 @@ def evaluate_family_classifier(model, test_loader, loss_function=None, batch_siz
 
 def compute_metrics_family(target, pred):
     # accuracy = accuracy_score(target, pred)
-    accuracy = (target.eq(pred.long())).sum() / target.shape[0]
+    accuracy = (target.eq(pred.long())).sum().item() / target.shape[0]
 
-    return accuracy.item()
+    return accuracy
