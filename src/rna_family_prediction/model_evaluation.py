@@ -36,6 +36,7 @@ model = GCN(n_features=20, hidden_dim=opt.hidden_dim, n_classes=n_classes,
             node_classification=False).to(opt.device)
 model.load_state_dict(torch.load('../models_family_classification/' + model_name + '/model.pt',
                                  map_location=device))
+print("The model has {} parameters".format(len(model.parameters())))
 
 y_pred = []
 y_true = []
