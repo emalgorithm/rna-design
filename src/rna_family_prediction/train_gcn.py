@@ -40,11 +40,11 @@ parser.add_argument('--n_conv_layers', type=int, default=3, help='Number of conv
 parser.add_argument('--conv_type', type=str, default="MPNN", help='Type of convolutional layers')
 parser.add_argument('--dropout', type=float, default=0, help='Amount of dropout')
 parser.add_argument('--batch_norm', dest='batch_norm', action='store_true')
+parser.add_argument('--no_batch_norm', dest='batch_norm', action='store_false')
+parser.set_defaults(batch_norm=True)
 parser.add_argument('--residuals', type=bool, default=False, help='Whether to use residuals')
 parser.add_argument('--set2set_pooling', type=bool, default=False, help='Whether to use set2set '
                                                                         'pooling')
-parser.add_argument('--no_batch_norm', dest='batch_norm', action='store_false')
-parser.set_defaults(batch_norm=True)
 parser.add_argument('--early_stopping', type=int, default=30, help='Number of epochs for early '
                                                                    'stopping')
 parser.add_argument('--verbose', type=bool, default=False, help='Verbosity')

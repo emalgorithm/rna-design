@@ -28,8 +28,8 @@ class GCN(nn.Module):
         # Fully connected layer
         self.fc = nn.Linear(hidden_dim, n_classes)
 
-        if residuals:
-            self.fc = nn.Linear(n_conv_layers * hidden_dim, n_classes)
+        # if residuals:
+        #     self.fc = nn.Linear(n_conv_layers * hidden_dim, n_classes)
 
         # If we are interested in graph classification, we introduce the final pooling and change
         # the fc layer to have dimensions compatible with the output of the Set2Set model
@@ -51,7 +51,7 @@ class GCN(nn.Module):
 
     def forward(self, data):
         x, adj, edge_attr, batch = data.x, data.edge_index, data.edge_attr, data.batch
-        poolings = torch.Tensor([]).to(self.device)
+        # poolings = torch.Tensor([]).to(self.device)
 
         if self.num_embeddings:
             x = self.embedding(x)
@@ -64,19 +64,19 @@ class GCN(nn.Module):
             x = nn.functional.leaky_relu(x)
             x = self.dropout(x)
 
-            if self.residuals:
-                poolings = torch.cat((poolings, global_add_pool(x, batch)), dim=1)
+            # if self.residuals:
+            #     poolings = torch.cat((poolings, global_add_pool(x, batch)), dim=1)
 
         # If we are interested in graph classification, apply graph-wise pooling
-        if not self.node_classification and not self.residuals:
+        if not self.node_classification: # and not self.residuals:
             if self.set2set_pooling:
                 x = self.pooling(x, batch)
             else:
                 x = global_add_pool(x, batch)
             x = self.dropout(x)
 
-        if self.residuals:
-            x = self.dropout(poolings)
+        # if self.residuals:
+        #     x = self.dropout(poolings)
 
         x = self.fc(x)
 
