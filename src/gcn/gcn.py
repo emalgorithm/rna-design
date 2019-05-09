@@ -8,7 +8,7 @@ class GCN(nn.Module):
     def __init__(self, n_features, hidden_dim, n_classes, n_conv_layers=3, dropout=0,
                  conv_type="MPNN", set2set_pooling=False, node_classification=True, softmax=False,
                  probability=True, batch_norm=True, num_embeddings=None, embedding_dim=20,
-                 residuals=False):
+                 residuals=False, device="cpu"):
         super(GCN, self).__init__()
         if num_embeddings:
             self.embedding = nn.Embedding(num_embeddings=num_embeddings, embedding_dim=embedding_dim)
@@ -47,10 +47,11 @@ class GCN(nn.Module):
         self.num_embeddings = num_embeddings
         self.set2set_pooling = set2set_pooling
         self.residuals = residuals
+        self.device = device
 
     def forward(self, data):
         x, adj, edge_attr, batch = data.x, data.edge_index, data.edge_attr, data.batch
-        poolings = torch.Tensor([])
+        poolings = torch.Tensor([]).to(self.device)
 
         if self.num_embeddings:
             x = self.embedding(x)
