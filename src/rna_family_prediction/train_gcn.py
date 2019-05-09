@@ -59,10 +59,10 @@ parser.add_argument('--foldings_dataset', type=str,
 #                     default='../data/family_prediction/dataset_Rfam_validated_2400_12classes'
 #                             '.fasta', help='Path to test dataset')
 parser.add_argument('--train_dataset', type=str,
-                    default='../data/family_prediction/train.fasta', help='Path to training '
+                    default='../data/family_prediction/train2.fasta', help='Path to training '
                                                                           'dataset')
 parser.add_argument('--val_dataset', type=str,
-                    default='../data/family_prediction/val.fasta', help='Path to val dataset')
+                    default='../data/family_prediction/val2.fasta', help='Path to val dataset')
 parser.add_argument('--test_dataset', type=str,
                     default='../data/family_prediction/dataset_Rfam_validated_2600_13classes.fasta', help='Path to test dataset')
 
