@@ -24,10 +24,15 @@ test_loader = DataLoader(test_set, batch_size=64, shuffle=False)
 opt = pickle.load(open('../results_family_classification/' + model_name +
                        '/hyperparams.pkl', "rb"))
 
-model = GCN(n_features=opt.embedding_dim, hidden_dim=opt.hidden_dim, n_classes=n_classes,
+# model = GCN(n_features=opt.embedding_dim, hidden_dim=opt.hidden_dim, n_classes=n_classes,
+#             n_conv_layers=opt.n_conv_layers,
+#             dropout=opt.dropout, batch_norm=opt.batch_norm, num_embeddings=len(word_to_ix),
+#             embedding_dim=opt.embedding_dim,
+#             node_classification=False).to(opt.device)
+model = GCN(n_features=20, hidden_dim=opt.hidden_dim, n_classes=n_classes,
             n_conv_layers=opt.n_conv_layers,
             dropout=opt.dropout, batch_norm=opt.batch_norm, num_embeddings=len(word_to_ix),
-            embedding_dim=opt.embedding_dim,
+            embedding_dim=20,
             node_classification=False).to(opt.device)
 model.load_state_dict(torch.load('../models_family_classification/' + model_name + '/model.pt',
                                  map_location=device))
