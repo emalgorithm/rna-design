@@ -35,7 +35,7 @@ class GCN(nn.Module):
         # the fc layer to have dimensions compatible with the output of the Set2Set model
         if set2set_pooling:
             self.fc = nn.Linear(2 * hidden_dim, n_classes)
-            self.pooling = Set2Set(hidden_dim, 10)
+            self.pooling = Set2Set(hidden_dim, processing_steps=10)
 
         self.dropout = nn.Dropout(dropout)
 
