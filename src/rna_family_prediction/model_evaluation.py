@@ -22,7 +22,7 @@ test_set = RNAFamilyGraphDataset(test_dataset, foldings_dataset)
 test_loader = DataLoader(test_set, batch_size=64, shuffle=False)
 
 opt = pickle.load(open('../results_family_classification/' + model_name +
-                       '/hyperparameters.pkl', "rb"))
+                       '/hyperparams.pkl', "rb"))
 
 model = GCN(n_features=opt.embedding_dim, hidden_dim=opt.hidden_dim, n_classes=n_classes,
             n_conv_layers=opt.n_conv_layers,
