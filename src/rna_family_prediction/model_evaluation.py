@@ -15,21 +15,21 @@ test_dataset = '../data/family_prediction/dataset_Rfam_validated_2400_12classes.
 foldings_dataset = '../data/family_prediction/foldings.pkl'
 model_name = "hidden_dim_100_dropout_0.2"
 
-device = 'cpu'
+device = 'cuda' if torch.cuda.is_available() else 'cpu'
 n_classes = len(families)
 
 test_set = RNAFamilyGraphDataset(test_dataset, foldings_dataset)
 test_loader = DataLoader(test_set, batch_size=64, shuffle=False)
 
-opt = pickle.load(open('../results_family_classification/' + model_name + '/hyperparameters.pkl',
-                       "rb"))
+opt = pickle.load(open('../data/results_family_classification/' + model_name +
+                       '/hyperparameters.pkl', "rb"))
 
 model = GCN(n_features=opt.embedding_dim, hidden_dim=opt.hidden_dim, n_classes=n_classes,
             n_conv_layers=opt.n_conv_layers,
             dropout=opt.dropout, batch_norm=opt.batch_norm, num_embeddings=len(word_to_ix),
             embedding_dim=opt.embedding_dim,
             node_classification=False).to(opt.device)
-model.load_state_dict(torch.load('../models_family_classification/' + model_name + '/model.pt',
+model.load_state_dict(torch.load('../data/models_family_classification/' + model_name + '/model.pt',
                                  map_location=device))
 
 y_pred = []
