@@ -40,6 +40,7 @@ parser.add_argument('--n_conv_layers', type=int, default=3, help='Number of conv
 parser.add_argument('--conv_type', type=str, default="MPNN", help='Type of convolutional layers')
 parser.add_argument('--dropout', type=float, default=0, help='Amount of dropout')
 parser.add_argument('--batch_norm', dest='batch_norm', action='store_true')
+parser.add_argument('--residuals', type=bool, default=False, help='Whether to use residuals')
 parser.add_argument('--no_batch_norm', dest='batch_norm', action='store_false')
 parser.set_defaults(batch_norm=True)
 parser.add_argument('--early_stopping', type=int, default=30, help='Number of epochs for early '
@@ -72,7 +73,7 @@ model = GCN(n_features=opt.embedding_dim, hidden_dim=opt.hidden_dim, n_classes=n
             n_conv_layers=opt.n_conv_layers,
             dropout=opt.dropout, batch_norm=opt.batch_norm, num_embeddings=len(word_to_ix),
             embedding_dim=opt.embedding_dim,
-            node_classification=False).to(opt.device)
+            node_classification=False, residuals=opt.residuals).to(opt.device)
 
 loss_function = nn.NLLLoss()
 optimizer = optim.Adam(model.parameters(), lr=opt.learning_rate)

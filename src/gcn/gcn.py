@@ -7,7 +7,8 @@ from torch_geometric.nn import GCNConv, NNConv, GINConv, GATConv, global_add_poo
 class GCN(nn.Module):
     def __init__(self, n_features, hidden_dim, n_classes, n_conv_layers=3, dropout=0,
                  conv_type="MPNN", set2set_pooling=False, node_classification=True, softmax=False,
-                 probability=True, batch_norm=True, num_embeddings=None, embedding_dim=20):
+                 probability=True, batch_norm=True, num_embeddings=None, embedding_dim=20,
+                 residuals=False):
         super(GCN, self).__init__()
         if num_embeddings:
             self.embedding = nn.Embedding(num_embeddings=num_embeddings, embedding_dim=embedding_dim)
@@ -27,6 +28,9 @@ class GCN(nn.Module):
         # Fully connected layer
         self.fc = nn.Linear(hidden_dim, n_classes)
 
+        if residuals:
+            self.fc = nn.Linear(n_conv_layers * hidden_dim, n_classes)
+
         # If we are interested in graph classification, we introduce the final pooling and change
         # the fc layer to have dimensions compatible with the output of the Set2Set model
         if set2set_pooling:
@@ -42,9 +46,11 @@ class GCN(nn.Module):
         self.batch_norm = batch_norm
         self.num_embeddings = num_embeddings
         self.set2set_pooling = set2set_pooling
+        self.residuals = residuals
 
     def forward(self, data):
         x, adj, edge_attr, batch = data.x, data.edge_index, data.edge_attr, data.batch
+        poolings = torch.Tensor([])
 
         if self.num_embeddings:
             x = self.embedding(x)
@@ -57,13 +63,19 @@ class GCN(nn.Module):
             x = nn.functional.leaky_relu(x)
             x = self.dropout(x)
 
+            if self.residuals:
+                poolings = torch.cat((poolings, global_add_pool(x, batch)), dim=1)
+
         # If we are interested in graph classification, apply graph-wise pooling
-        if not self.node_classification:
+        if not self.node_classification and not self.residuals:
             if self.set2set_pooling:
                 x = self.pooling(x, batch)
             else:
                 x = global_add_pool(x, batch)
             x = self.dropout(x)
+
+        if self.residuals:
+            x = self.dropout(poolings)
 
         x = self.fc(x)
 
