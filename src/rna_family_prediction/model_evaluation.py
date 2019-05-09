@@ -56,5 +56,5 @@ for batch_idx, data in enumerate(test_loader):
     y_pred += list(pred.cpu().numpy())
     y_true += list(data.y.cpu().numpy())
 
-print(classification_report(y_true, y_pred, target_names=families), digits=4)
-print("MCC: {0:.2f}".format(matthews_corrcoef(y_true, y_pred)))
+print(classification_report(y_true, y_pred, target_names=families, digits=4))
+print("MCC: {0:.4f}".format(matthews_corrcoef(y_true, y_pred)))
