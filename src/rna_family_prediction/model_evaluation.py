@@ -5,36 +5,39 @@ sys.path.append(os.getcwd().split('src')[0])
 from sklearn.metrics import classification_report, matthews_corrcoef
 import pickle
 import torch
+import argparse
 
 from src.data_util.data_constants import families, word_to_ix
 from src.data_util.rna_family_graph_dataset import RNAFamilyGraphDataset
 from torch_geometric.data import DataLoader
 from src.gcn.gcn import GCN
 
-test_dataset = '../data/family_prediction/dataset_Rfam_validated_2400_12classes.fasta'
+parser = argparse.ArgumentParser()
+parser.add_argument('--model_name', default="best", help='model name')
+parser.add_argument('--test_dataset',
+                    default='../data/family_prediction/dataset_Rfam_validated_2600_13classes'
+                            '.fasta', help='Path to test dataset')
+args = parser.parse_args()
+
 foldings_dataset = '../data/family_prediction/foldings.pkl'
-model_name = "hidden_dim_100_dropout_0.2"
 
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 n_classes = len(families)
 
-test_set = RNAFamilyGraphDataset(test_dataset, foldings_dataset)
+test_set = RNAFamilyGraphDataset(args.test_dataset, foldings_dataset)
 test_loader = DataLoader(test_set, batch_size=64, shuffle=False)
 
-opt = pickle.load(open('../results_family_classification/' + model_name +
+opt = pickle.load(open('../results_family_classification/' + args.model_name +
                        '/hyperparams.pkl', "rb"))
 
-# model = GCN(n_features=opt.embedding_dim, hidden_dim=opt.hidden_dim, n_classes=n_classes,
-#             n_conv_layers=opt.n_conv_layers,
-#             dropout=opt.dropout, batch_norm=opt.batch_norm, num_embeddings=len(word_to_ix),
-#             embedding_dim=opt.embedding_dim,
-#             node_classification=False).to(opt.device)
-model = GCN(n_features=20, hidden_dim=opt.hidden_dim, n_classes=n_classes,
+model = GCN(n_features=opt.embedding_dim, hidden_dim=opt.hidden_dim, n_classes=n_classes,
             n_conv_layers=opt.n_conv_layers,
             dropout=opt.dropout, batch_norm=opt.batch_norm, num_embeddings=len(word_to_ix),
-            embedding_dim=20,
-            node_classification=False).to(opt.device)
-model.load_state_dict(torch.load('../models_family_classification/' + model_name + '/model.pt',
+            embedding_dim=opt.embedding_dim,
+            node_classification=False,
+            set2set_pooling=opt.set2set_pooling).to(opt.device)
+
+model.load_state_dict(torch.load('../models_family_classification/' + args.model_name + '/model.pt',
                                  map_location=device))
 print("The model has {} parameters".format(sum(p.numel() for p in model.parameters() if p.requires_grad)))
 
