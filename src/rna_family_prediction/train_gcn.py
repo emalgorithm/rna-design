@@ -28,7 +28,7 @@ parser.add_argument('--n_samples', type=int, default=None, help='Number of sampl
 parser.add_argument('--n_epochs', type=int, default=10000, help='Number of samples to train on')
 parser.add_argument('--embedding_dim', type=int, default=20, help='Dimension of nucleotide '
                                                                   'embeddings')
-parser.add_argument('--hidden_dim', type=int, default=20, help='Dimension of hidden '
+parser.add_argument('--hidden_dim', type=int, default=80, help='Dimension of hidden '
                                                                 'representations of convolutional layers')
 parser.add_argument('--batch_size', type=int, default=64, help='Batch size')
 parser.add_argument('--learning_rate', type=float, default=0.0004, help='Learning rate')
@@ -36,14 +36,14 @@ parser.add_argument('--seq_max_len', type=int, default=10000, help='Maximum leng
                                                                  'used for training and testing')
 parser.add_argument('--seq_min_len', type=int, default=1, help='Maximum length of sequences '
                                                                  'used for training and testing')
-parser.add_argument('--n_conv_layers', type=int, default=3, help='Number of convolutional layers')
+parser.add_argument('--n_conv_layers', type=int, default=5, help='Number of convolutional layers')
 parser.add_argument('--conv_type', type=str, default="MPNN", help='Type of convolutional layers')
-parser.add_argument('--dropout', type=float, default=0, help='Amount of dropout')
+parser.add_argument('--dropout', type=float, default=0.1, help='Amount of dropout')
 parser.add_argument('--batch_norm', dest='batch_norm', action='store_true')
 parser.add_argument('--no_batch_norm', dest='batch_norm', action='store_false')
 parser.set_defaults(batch_norm=True)
 parser.add_argument('--residuals', type=bool, default=False, help='Whether to use residuals')
-parser.add_argument('--set2set_pooling', type=bool, default=False, help='Whether to use set2set '
+parser.add_argument('--set2set_pooling', type=bool, default=True, help='Whether to use set2set '
                                                                         'pooling')
 parser.add_argument('--early_stopping', type=int, default=30, help='Number of epochs for early '
                                                                    'stopping')
