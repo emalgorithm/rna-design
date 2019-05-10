@@ -2,7 +2,7 @@ import os
 import sys
 sys.path.append(os.getcwd().split('src')[0])
 
-from sklearn.metrics import classification_report, matthews_corrcoef
+from sklearn.metrics import classification_report, matthews_corrcoef, accuracy_score
 import pickle
 import torch
 import argparse
@@ -61,4 +61,5 @@ for batch_idx, data in enumerate(test_loader):
     y_true += list(data.y.cpu().numpy())
 
 print(classification_report(y_true, y_pred, target_names=families, digits=4))
+print("Accuracy: {0:.4f}".format(accuracy_score(y_true, y_pred)))
 print("MCC: {0:.4f}".format(matthews_corrcoef(y_true, y_pred)))
