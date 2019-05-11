@@ -260,11 +260,12 @@ def compute_metrics_family(target, pred):
 
 
 def get_sensitivity(cf):
+    # tp / (tp + fn)
     sensitivity = 0
     for c in range(len(cf)):
         tp = cf[c, c]
-        fp = np.sum(cf[c, :]) - tp
-        sensitivity += tp / (tp + fp)
+        fn = np.sum(cf[:, c]) - tp
+        sensitivity += tp / (tp + fn)
 
     return sensitivity / len(cf)
 
@@ -274,7 +275,7 @@ def get_specificity(cf):
     for c in range(len(cf)):
         tp = cf[c, c]
         fp = np.sum(cf[c]) - tp
-        fn = np.sum(cf[:, c])
+        fn = np.sum(cf[:, c]) - tp
         tn = np.sum(cf) - tp - fp - fn
         specificity += tn / (tn + fp)
 
