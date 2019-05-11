@@ -274,7 +274,7 @@ def get_specificity(cf):
     specificity = 0
     for c in range(len(cf)):
         tp = cf[c, c]
-        fp = np.sum(cf[c]) - tp
+        fp = np.sum(cf[c, :]) - tp
         fn = np.sum(cf[:, c]) - tp
         tn = np.sum(cf) - tp - fp - fn
         specificity += tn / (tn + fp)
