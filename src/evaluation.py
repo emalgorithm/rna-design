@@ -263,8 +263,8 @@ def get_sensitivity(cf):
     tp = 0
     fp = 0
     for c in range(len(cf)):
-        tp = cf[c, c]
-        fp = np.sum(cf[c]) - tp
+        tp += cf[c, c]
+        fp += np.sum(cf[c]) - tp
 
     sensitivity = tp / (tp + fp)
 
@@ -272,8 +272,6 @@ def get_sensitivity(cf):
 
 
 def get_specificity(cf):
-    tn = 0
-    fp = 0
     specificity = 0
     for c in range(len(cf)):
         tp = cf[c, c]
