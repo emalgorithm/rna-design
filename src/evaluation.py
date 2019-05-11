@@ -257,3 +257,29 @@ def compute_metrics_family(target, pred):
     accuracy = (target.eq(pred.long())).sum().item() / target.shape[0]
 
     return accuracy
+
+
+def get_sensitivity(cf):
+    tp = 0
+    fp = 0
+    for c in range(len(cf)):
+        tp = cf[c, c]
+        fp = np.sum(cf[c]) - tp
+
+    sensitivity = tp / (tp + fp)
+
+    return sensitivity
+
+
+def get_specificity(cf):
+    tn = 0
+    fp = 0
+    specificity = 0
+    for c in range(len(cf)):
+        tp = cf[c, c]
+        fp = np.sum(cf[c]) - tp
+        fn = np.sum(cf[:, c])
+        tn = np.sum(cf) - tp - fp - fn
+        specificity += tn / (tn + fp)
+
+    return specificity / len(cf)

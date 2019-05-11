@@ -2,7 +2,7 @@ import os
 import sys
 sys.path.append(os.getcwd().split('src')[0])
 
-from sklearn.metrics import classification_report, matthews_corrcoef, accuracy_score
+from sklearn.metrics import classification_report, matthews_corrcoef, accuracy_score, confusion_matrix
 import pickle
 import torch
 import argparse
@@ -11,6 +11,7 @@ from src.data_util.data_constants import families, word_to_ix
 from src.data_util.rna_family_graph_dataset import RNAFamilyGraphDataset
 from torch_geometric.data import DataLoader
 from src.gcn.gcn import GCN
+from src.evaluation import get_sensitivity, get_specificity
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--model_name', default="best", help='model name')
@@ -62,4 +63,6 @@ for batch_idx, data in enumerate(test_loader):
 
 print(classification_report(y_true, y_pred, target_names=families, digits=4))
 print("Accuracy: {0:.4f}".format(accuracy_score(y_true, y_pred)))
+print("Sensitivity: {0:.4f}".format(get_sensitivity(confusion_matrix(y_true, y_pred))))
+print("Specificity: {0:.4f}".format(get_specificity(confusion_matrix(y_true, y_pred))))
 print("MCC: {0:.4f}".format(matthews_corrcoef(y_true, y_pred)))
